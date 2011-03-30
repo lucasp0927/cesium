@@ -2,221 +2,240 @@
 from __future__ import division
 import numpy as np
 
-n=3 #number of states
-N=0
-
-omega = [351E12,9E9,0]
-
-dipole=[[0,500000,500000],
-        [500000,0,0],
-        [500000,0,0]]
-#remember to /2
-
-nu=[351E12-9E9,351E12]
-nu2=[351E12-9E9,351E12]
-
-efreq = np.array([-1*nu[0],nu[0],-1*nu[1],nu[1]]) # frequencies of electric field
-
-up = [0]
-low1 = [1]
-low2 = [2]
-groups = [up,low1,low2]
-
-#decoherence
-Gamma1 = 5000000
-Gamma12 = 2500000
-Gamma13 = 2500000
-gamma1 = 10000
-gamma2 = 10000
-
-
-def density_length(n):
+class System:
     """
-    Calculate number of independant variable in the density matrix.
     """
-    return n+(n*(n-1)) #n+2(n-1+1)(n-1)/2 because non diagonal terms are complex
+    def density_length(self,n):
+        """
+        Calculate number of independant variable in the density matrix.
+        """
+        return n+(n*(n-1)) #n+2(n-1+1)(n-1)/2 because non diagonal terms are complex
 
-def hamiltonian(i,j):
-    if i==j:
-        return omega[i]
-    else:
-        return dipole[i][j]
-
-def density_index(i,j):
-    if j<i:
-        raise IOError('only upper diagonal part')
-    if i==j:
-        return (n+(n-i+1))*i-i
-    else:
-        return (n+(n-i+1))*i-i+(j-i)*2-1
-
-#def reverse_density_index(k):
-
-
-def normalize(matrix):
-    """
-    no need to calculate bloch equation of rho_nn
-    """
-    for i in range(n):
-        matrix[N-1][density_index(i,i)]=1
-
-def same_group(i,j):
-    for g in groups:
-        if (i in g) and (j in g):
-            return True
-    else:
-        return False
-
-def interaction_freq(i,j):
-    if same_group(i,j):
-        return 0
-    else:
-        if (i in up) and (j in low1):
-            return -1*nu[0]
-        elif ((i in up) and (j in low2)):
-            return -1*nu[1]
-        elif ((i in low1) and (j in low2)):
-            return nu[0]-nu[1]
-        elif (j in up) and (i in low1):
-            return nu[0]
-        elif ((j in up) and (i in low2)):
-            return nu[1]
-        elif ((j in low1) and (i in low2)):
-            return nu[1]-nu[0]
+    def hamiltonian(self,i,j):
+        if i==j:
+            return self.omega[i]
         else:
-            print 'interaction_freq error\n'
-            print i,j
+            return self.dipole[i][j]
 
-def diagonal_part(system,i,j):
-    complex_tmp = np.zeros(N,dtype='complex')
-    """
-    plus part
-    """
-    for k in range(n):
-        if k==j: # diagonal hamiltonian
-            complex_tmp[density_index(i,k)]+=1j*hamiltonian(k,j)
+    def density_index(self,i,j):
+        if j<i:
+            raise IOError('only upper diagonal part')
+        if i==j:
+            return (self.n+(self.n-i+1))*i-i
         else:
-            if k>i:
-                if 0 in efreq+interaction_freq(i,k):
-                    complex_tmp[density_index(i,k)]+=1j*hamiltonian(k,j)
-                    complex_tmp[density_index(i,k)+1]+= -1*hamiltonian(k,j)
-            else:
-                if 0 in efreq+interaction_freq(i,k):
-                    complex_tmp[density_index(k,i)]+=1j*hamiltonian(k,j)
-                    complex_tmp[density_index(k,i)+1]+= hamiltonian(k,j)
-    """
-    minus part
-    """
-    for k in range(n):
-        if k==i: # diagonal hamiltonian
-            complex_tmp[density_index(k,j)]-=1j*hamiltonian(i,k)
+            return (self.n+(self.n-i+1))*i-i+(j-i)*2-1
+
+    def normalize(self,matrix):
+        """
+        no need to calculate bloch equation of rho_nn
+        """
+        for i in range(self.n):
+            matrix[self.N-1][self.density_index(i,i)]=1
+        return matrix
+
+    def same_group(self,i,j):
+        for g in self.groups:
+            if (i in g) and (j in g):
+                return True
         else:
-            if j>k:
-                if 0 in efreq+interaction_freq(k,j):
-                    complex_tmp[density_index(k,j)]-=1j*hamiltonian(i,k)
-                    complex_tmp[density_index(k,j)+1]-= -1*hamiltonian(i,k)
-            else:
-                if 0 in efreq+interaction_freq(k,j):
-                    complex_tmp[density_index(j,k)]-=1j*hamiltonian(i,k)
-                    complex_tmp[density_index(j,k)+1]-= hamiltonian(i,k)
-    for num in complex_tmp:
-        if num.imag !=0:
-            raise IOError('complex number in density matrix diagonal!')
-    for s in range(N):
-        system[density_index(i,j)][s] = complex_tmp[s].real
+            return False
 
-def non_diagonal_part(system,i,j):
-    complex_tmp = np.zeros(N,dtype='complex')
-    """
-    plus part
-    """
-    for k in range(n):
-        if k==j: # diagonal hamiltonian
-            if interaction_freq(i,k)-interaction_freq(i,j) == 0: #always same can be delete
-                complex_tmp[density_index(i,k)] += 1j*hamiltonian(k,j)
-                complex_tmp[density_index(i,k)+1] += -1*hamiltonian(k,j)
+    def interaction_freq(self,i,j):
+        if self.same_group(i,j):
+            return 0
         else:
-            if i==k:
-                if 0 in efreq+interaction_freq(i,k)-interaction_freq(i,j):
-                    complex_tmp[density_index(i,k)]+=1j*hamiltonian(k,j)
-            elif k>i:
-                if 0 in efreq+interaction_freq(i,k)-interaction_freq(i,j):
-                    complex_tmp[density_index(i,k)]+=1j*hamiltonian(k,j)
-                    complex_tmp[density_index(i,k)+1]+= -1*hamiltonian(k,j)
+            if (i in self.up) and (j in self.low1):
+                return -1*self.nu[0]
+            elif ((i in self.up) and (j in self.low2)):
+                return -1*self.nu[1]
+            elif ((i in self.low1) and (j in self.low2)):
+                return self.nu[0]-self.nu[1]
+            elif (j in self.up) and (i in self.low1):
+                return self.nu[0]
+            elif ((j in self.up) and (i in self.low2)):
+                return self.nu[1]
+            elif ((j in self.low1) and (i in self.low2)):
+                return self.nu[1]-self.nu[0]
             else:
-                if 0 in efreq+interaction_freq(i,k)-interaction_freq(i,j):
-                    complex_tmp[density_index(k,i)]+=1j*hamiltonian(k,j)
-                    complex_tmp[density_index(k,i)+1]+= hamiltonian(k,j)
-    """
-    minus part
-    """
-    for k in range(n):
-        if k==i: # diagonal hamiltonian
-            if interaction_freq(k,j)-interaction_freq(i,j) == 0: #always same can be delete
-                complex_tmp[density_index(k,j)] -= 1j*hamiltonian(i,k)
-                complex_tmp[density_index(k,j)+1] -= -1*hamiltonian(i,k)
-        else:
-            if j==k:
-                if 0 in efreq+interaction_freq(k,j)-interaction_freq(i,j):
-                    complex_tmp[density_index(k,j)]-= 1j*hamiltonian(i,k)
-            elif j>k:
-                if 0 in efreq+interaction_freq(k,j)-interaction_freq(i,j):
-                    complex_tmp[density_index(k,j)]-=1j*hamiltonian(i,k)
-                    complex_tmp[density_index(k,j)+1]-= -1*hamiltonian(i,k)
+                print 'interaction_freq error\n'
+                print i,j
+
+    def diagonal_part(self,system,i,j):
+        complex_tmp = np.zeros(self.N,dtype='complex')
+        """
+        plus part
+        """
+        for k in range(self.n):
+            if k==j: # diagonal hamiltonian
+                complex_tmp[self.density_index(i,k)]+=1j*self.hamiltonian(k,j)
             else:
-                if 0 in efreq+interaction_freq(k,j)-interaction_freq(i,j):
-                    complex_tmp[density_index(j,k)]-=1j*hamiltonian(i,k)
-                    complex_tmp[density_index(j,k)+1]-= hamiltonian(i,k)
-    for s in range(N):
-        system[density_index(i,j)][s] = complex_tmp[s].real
-        system[density_index(i,j)+1][s] = complex_tmp[s].imag
-
-def decoherence(system):
-    system[density_index(0,0)][density_index(0,0)]-=Gamma1
-    system[density_index(1,1)][density_index(0,0)]+=Gamma12
-    system[density_index(1,1)][density_index(1,1)]-=gamma1
-    system[density_index(1,1)][density_index(2,2)]+=gamma2
-    system[density_index(0,1)][density_index(0,1)]-=0.5*Gamma1
-    system[density_index(0,1)+1][density_index(0,1)+1]-=0.5*Gamma1
-    system[density_index(0,2)][density_index(0,2)]-=0.5*Gamma1
-    system[density_index(0,2)+1][density_index(0,2)+1]-=0.5*Gamma1
-    system[density_index(1,2)][density_index(1,2)]-=gamma2
-    system[density_index(1,2)+1][density_index(1,2)+1]-=gamma2
-
-def sweep_freq(system):
-    for i in range(n):
-        for j in range(n):
-            if j>i:
-                system[density_index(i,j)][density_index(i,j)+1]+=interaction_freq(i,j)
-                system[density_index(i,j)+1][density_index(i,j)]-=interaction_freq(i,j)
-
-def von_neumann(system):
-    for i in range(n):
-        for j in range(n):
-            #for every density matrix element
-            if j>i and ([i,j] != [n-1,n-1]):
-                non_diagonal_part(system,i,j)
-            """
-            diagonal element of density matrix
-            """
-            if j==i and ([i,j] != [n-1,n-1]):
-                diagonal_part(system,i,j)
+                if k>i:
+                    if 0 in self.efreq+self.interaction_freq(i,k):
+                        complex_tmp[self.density_index(i,k)]+=1j*self.hamiltonian(k,j)
+                        complex_tmp[self.density_index(i,k)+1]+= -1*self.hamiltonian(k,j)
+                else:
+                    if 0 in self.efreq+self.interaction_freq(i,k):
+                        complex_tmp[self.density_index(k,i)]+=1j*self.hamiltonian(k,j)
+                        complex_tmp[self.density_index(k,i)+1]+= self.hamiltonian(k,j)
+        """
+        minus part
+        """
+        for k in range(self.n):
+            if k==i: # diagonal hamiltonian
+                complex_tmp[self.density_index(k,j)]-=1j*self.hamiltonian(i,k)
             else:
-                pass
+                if j>k:
+                    if 0 in self.efreq+self.interaction_freq(k,j):
+                        complex_tmp[self.density_index(k,j)]-=1j*self.hamiltonian(i,k)
+                        complex_tmp[self.density_index(k,j)+1]-= -1*self.hamiltonian(i,k)
+                else:
+                    if 0 in self.efreq+self.interaction_freq(k,j):
+                        complex_tmp[self.density_index(j,k)]-=1j*self.hamiltonian(i,k)
+                        complex_tmp[self.density_index(j,k)+1]-= self.hamiltonian(i,k)
+        for num in complex_tmp:
+            if num.imag !=0:
+                raise IOError('complex number in density matrix diagonal!')
+        for s in range(self.N):
+            system[self.density_index(i,j)][s] = complex_tmp[s].real
+        return system
+
+    def non_diagonal_part(self,system,i,j):
+        complex_tmp = np.zeros(self.N,dtype='complex')
+        """
+        plus part
+        """
+        for k in range(self.n):
+            if k==j: # diagonal hamiltonian
+                if self.interaction_freq(i,k)-self.interaction_freq(i,j) == 0: #always same can be delete
+                    complex_tmp[self.density_index(i,k)] += 1j*self.hamiltonian(k,j)
+                    complex_tmp[self.density_index(i,k)+1] += -1*self.hamiltonian(k,j)
+            else:
+                if i==k:
+                    if 0 in self.efreq+self.interaction_freq(i,k)-self.interaction_freq(i,j):
+                        complex_tmp[self.density_index(i,k)]+=1j*self.hamiltonian(k,j)
+                elif k>i:
+                    if 0 in self.efreq+self.interaction_freq(i,k)-self.interaction_freq(i,j):
+                        complex_tmp[self.density_index(i,k)]+=1j*self.hamiltonian(k,j)
+                        complex_tmp[self.density_index(i,k)+1]+= -1*self.hamiltonian(k,j)
+                else:
+                    if 0 in self.efreq+self.interaction_freq(i,k)-self.interaction_freq(i,j):
+                        complex_tmp[self.density_index(k,i)]+=1j*self.hamiltonian(k,j)
+                        complex_tmp[self.density_index(k,i)+1]+= self.hamiltonian(k,j)
+        """
+        minus part
+        """
+        for k in range(self.n):
+            if k==i: # diagonal hamiltonian
+                if self.interaction_freq(k,j)-self.interaction_freq(i,j) == 0: #always same can be delete
+                    complex_tmp[self.density_index(k,j)] -= 1j*self.hamiltonian(i,k)
+                    complex_tmp[self.density_index(k,j)+1] -= -1*self.hamiltonian(i,k)
+            else:
+                if j==k:
+                    if 0 in self.efreq+self.interaction_freq(k,j)-self.interaction_freq(i,j):
+                        complex_tmp[self.density_index(k,j)]-= 1j*self.hamiltonian(i,k)
+                elif j>k:
+                    if 0 in self.efreq+self.interaction_freq(k,j)-self.interaction_freq(i,j):
+                        complex_tmp[self.density_index(k,j)]-=1j*self.hamiltonian(i,k)
+                        complex_tmp[self.density_index(k,j)+1]-= -1*self.hamiltonian(i,k)
+                else:
+                    if 0 in self.efreq+self.interaction_freq(k,j)-self.interaction_freq(i,j):
+                        complex_tmp[self.density_index(j,k)]-=1j*self.hamiltonian(i,k)
+                        complex_tmp[self.density_index(j,k)+1]-= self.hamiltonian(i,k)
+        for s in range(self.N):
+            system[self.density_index(i,j)][s] = complex_tmp[s].real
+            system[self.density_index(i,j)+1][s] = complex_tmp[s].imag
+        return system
+
+    def decoherence(self,system):
+        system[self.density_index(0,0)][self.density_index(0,0)]-=self.Gamma1
+        system[self.density_index(1,1)][self.density_index(0,0)]+=self.Gamma12
+        system[self.density_index(1,1)][self.density_index(1,1)]-=self.gamma1
+        system[self.density_index(1,1)][self.density_index(2,2)]+=self.gamma2
+        system[self.density_index(0,1)][self.density_index(0,1)]-=0.5*self.Gamma1
+        system[self.density_index(0,1)+1][self.density_index(0,1)+1]-=0.5*self.Gamma1
+        system[self.density_index(0,2)][self.density_index(0,2)]-=0.5*self.Gamma1
+        system[self.density_index(0,2)+1][self.density_index(0,2)+1]-=0.5*self.Gamma1
+        system[self.density_index(1,2)][self.density_index(1,2)]-=self.gamma2
+        system[self.density_index(1,2)+1][self.density_index(1,2)+1]-=self.gamma2
+        return system
+
+    def add_freq(self,system):
+        for i in range(self.n):
+            for j in range(self.n):
+                if j>i:
+                    system[self.density_index(i,j)][self.density_index(i,j)+1]+=self.interaction_freq(i,j)
+                    system[self.density_index(i,j)+1][self.density_index(i,j)]-=self.interaction_freq(i,j)
+
+        return system
+
+    def sweep(self,start,end,points):
+        for freq in np.linspace(start,end,points):
+            system_sweep = self.system.copy()
+            self.nu[0]=self.nu2[0]+freq
+            system_sweep = self.add_freq(system_sweep)
+            system_sweep=np.matrix(system_sweep)
+            print freq,np.linalg.solve(system_sweep,self.a)[0,0]
+
+    def von_neumann(self,system):
+        for i in range(self.n):
+            for j in range(self.n):
+                #for every density matrix element
+                if j>i and ([i,j] != [self.n-1,self.n-1]):
+                    self.non_diagonal_part(system,i,j)
+                """
+                diagonal element of density matrix
+                """
+                if j==i and ([i,j] != [self.n-1,self.n-1]):
+                    self.diagonal_part(system,i,j)
+                else:
+                    pass
+        return system
+
+    def __init__(self,n,omega,dipole,nu,up,low1,low2,Gamma1,Gamma12,Gamma13,gamma1,gamma2 ):
+        """
+        """
+        self.n = n
+        self.omega = omega
+        self.dipole = dipole
+        self.nu = nu
+        self.nu2 = self.nu[:]
+        self.up = up
+        self.low1 = low1
+        self.low2 = low2
+        self.Gamma1=Gamma1
+        self.Gamma12=Gamma12
+        self.Gamma13=Gamma13
+        self.gamma1=gamma1
+        self.gamma2=gamma2
+        self.efreq = np.array([-1*nu[0],nu[0],-1*nu[1],nu[1]]) # frequencies of electric field
+        self.groups = [up,low1,low2]
+        self.N=self.density_length(n)
+        self.a=np.zeros(self.N)
+        self.a[self.N-1]=1
+        self.a=np.matrix(self.a)
+        self.a=self.a.T
+        self.system=np.zeros([self.N,self.N])
+        self.system=self.normalize(self.system)
+        self.system=self.von_neumann(self.system)
+        self.system=self.decoherence(self.system)
 
 if __name__ ==  '__main__':
-    N=density_length(n)
-    a=np.zeros(N)
-    a[N-1]=1
-    a=np.matrix(a)
-    a=a.T
-    system=np.zeros([N,N])
-    normalize(system)
-    von_neumann(system)
-    decoherence(system)
-    for freq in range(int(-1E7),int(1E7),int(1E4)):
-        nu[0]=nu2[0]+freq
-        system_sweep=system.copy()
-        sweep_freq(system_sweep)
-        system_sweep=np.matrix(system_sweep)
-        print freq,np.linalg.solve(system_sweep,a)[0,0]
+    an=3
+    aomega = [351E12,9E9,0]
+    adipole=[[0,500000,500000],
+            [500000,0,0],
+            [500000,0,0]]
+    #remember to /2
+    anu=[351E12-9E9,351E12] # on resonence
+    aup = [0]
+    alow1 = [1]
+    alow2 = [2]
+    #decoherence
+    aGamma1 = 5000000
+    aGamma12 = 2500000
+    aGamma13 = 2500000
+    agamma1 = 10000
+    agamma2 = 10000
+
+    system = System(an,aomega,adipole,anu,aup,alow1,alow2,aGamma1,aGamma12,aGamma13,agamma1,agamma2)
+    system.sweep(-1E7,1E7,1000)
