@@ -71,12 +71,12 @@ class System:
             else:
                 if k>i:
                     if 0 in self.efreq+self.interaction_freq(i,k):
-                        complex_tmp[self.density_index(i,k)]+=1j*self.hamiltonian(k,j)
-                        complex_tmp[self.density_index(i,k)+1]+= -1*self.hamiltonian(k,j)
+                        complex_tmp[self.density_index(i,k)]+=1j*self.hamiltonian(k,j)/2
+                        complex_tmp[self.density_index(i,k)+1]+= -1*self.hamiltonian(k,j)/2
                 else:
                     if 0 in self.efreq+self.interaction_freq(i,k):
-                        complex_tmp[self.density_index(k,i)]+=1j*self.hamiltonian(k,j)
-                        complex_tmp[self.density_index(k,i)+1]+= self.hamiltonian(k,j)
+                        complex_tmp[self.density_index(k,i)]+=1j*self.hamiltonian(k,j)/2
+                        complex_tmp[self.density_index(k,i)+1]+= self.hamiltonian(k,j)/2
         """
         minus part
         """
@@ -86,12 +86,12 @@ class System:
             else:
                 if j>k:
                     if 0 in self.efreq+self.interaction_freq(k,j):
-                        complex_tmp[self.density_index(k,j)]-=1j*self.hamiltonian(i,k)
-                        complex_tmp[self.density_index(k,j)+1]-= -1*self.hamiltonian(i,k)
+                        complex_tmp[self.density_index(k,j)]-=1j*self.hamiltonian(i,k)/2
+                        complex_tmp[self.density_index(k,j)+1]-= -1*self.hamiltonian(i,k)/2
                 else:
                     if 0 in self.efreq+self.interaction_freq(k,j):
-                        complex_tmp[self.density_index(j,k)]-=1j*self.hamiltonian(i,k)
-                        complex_tmp[self.density_index(j,k)+1]-= self.hamiltonian(i,k)
+                        complex_tmp[self.density_index(j,k)]-=1j*self.hamiltonian(i,k)/2
+                        complex_tmp[self.density_index(j,k)+1]-= self.hamiltonian(i,k)/2
         for num in complex_tmp:
             if num.imag !=0:
                 raise IOError('complex number in density matrix diagonal!')
@@ -110,17 +110,17 @@ class System:
                     complex_tmp[self.density_index(i,k)] += 1j*self.hamiltonian(k,j)
                     complex_tmp[self.density_index(i,k)+1] += -1*self.hamiltonian(k,j)
             else:
-                if i==k:
+                if i==k: #rho_ii
                     if 0 in self.efreq+self.interaction_freq(i,k)-self.interaction_freq(i,j):
-                        complex_tmp[self.density_index(i,k)]+=1j*self.hamiltonian(k,j)
-                elif k>i:
+                        complex_tmp[self.density_index(i,k)]+=1j*self.hamiltonian(k,j)/2
+                elif k>i: #rho_ik, upper diagonal
                     if 0 in self.efreq+self.interaction_freq(i,k)-self.interaction_freq(i,j):
-                        complex_tmp[self.density_index(i,k)]+=1j*self.hamiltonian(k,j)
-                        complex_tmp[self.density_index(i,k)+1]+= -1*self.hamiltonian(k,j)
-                else:
+                        complex_tmp[self.density_index(i,k)]+=1j*self.hamiltonian(k,j)/2
+                        complex_tmp[self.density_index(i,k)+1]+= -1*self.hamiltonian(k,j)/2
+                else: # lower diagonal
                     if 0 in self.efreq+self.interaction_freq(i,k)-self.interaction_freq(i,j):
-                        complex_tmp[self.density_index(k,i)]+=1j*self.hamiltonian(k,j)
-                        complex_tmp[self.density_index(k,i)+1]+= self.hamiltonian(k,j)
+                        complex_tmp[self.density_index(k,i)]+=1j*self.hamiltonian(k,j)/2
+                        complex_tmp[self.density_index(k,i)+1]+= self.hamiltonian(k,j)/2
         """
         minus part
         """
@@ -132,15 +132,15 @@ class System:
             else:
                 if j==k:
                     if 0 in self.efreq+self.interaction_freq(k,j)-self.interaction_freq(i,j):
-                        complex_tmp[self.density_index(k,j)]-= 1j*self.hamiltonian(i,k)
+                        complex_tmp[self.density_index(k,j)]-= 1j*self.hamiltonian(i,k)/2
                 elif j>k:
                     if 0 in self.efreq+self.interaction_freq(k,j)-self.interaction_freq(i,j):
-                        complex_tmp[self.density_index(k,j)]-=1j*self.hamiltonian(i,k)
-                        complex_tmp[self.density_index(k,j)+1]-= -1*self.hamiltonian(i,k)
+                        complex_tmp[self.density_index(k,j)]-=1j*self.hamiltonian(i,k)/2
+                        complex_tmp[self.density_index(k,j)+1]-= -1*self.hamiltonian(i,k)/2
                 else:
                     if 0 in self.efreq+self.interaction_freq(k,j)-self.interaction_freq(i,j):
-                        complex_tmp[self.density_index(j,k)]-=1j*self.hamiltonian(i,k)
-                        complex_tmp[self.density_index(j,k)+1]-= self.hamiltonian(i,k)
+                        complex_tmp[self.density_index(j,k)]-=1j*self.hamiltonian(i,k)/2
+                        complex_tmp[self.density_index(j,k)+1]-= self.hamiltonian(i,k)/2
         for s in range(self.N):
             system[self.density_index(i,j)][s] = complex_tmp[s].real
             system[self.density_index(i,j)+1][s] = complex_tmp[s].imag
@@ -222,9 +222,9 @@ class System:
 if __name__ ==  '__main__':
     an=3
     aomega = [351E12,9E9,0]
-    adipole=[[0,500000,500000],
-            [500000,0,0],
-            [500000,0,0]]
+    adipole=[[0,1000000,1000000],
+            [1000000,0,0],
+            [1000000,0,0]]
     #remember to /2
     anu=[351E12-9E9,351E12] # on resonence
     aup = [0]
