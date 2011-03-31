@@ -4,6 +4,15 @@ import numpy as np
 from progress_bar import ProgressBar
 import sys
 
+class flushfile(object):
+    def __init__(self, f):
+        self.f = f
+    def write(self, x):
+        self.f.write(x)
+        self.f.flush()
+
+sys.stdout = flushfile(sys.stdout)
+
 class System:
     """
     """
@@ -67,7 +76,6 @@ class System:
                 print i,j
 
     def rotating_wave_approx(self,freqs):
-        #if 0 in self.efreq+self.interaction_freq(i,k):
         efrequency = self.efreq.copy()
         for f in freqs:
             efrequency += f
@@ -87,13 +95,11 @@ class System:
                 complex_tmp[self.density_index(i,k)]+=1j*self.hamiltonian(k,j)
             else:
                 if k>i:
-                    #if 0 in self.efreq+self.interaction_freq(i,k):
                     if self.rotating_wave_approx([self.interaction_freq(i,k)]):
                         complex_tmp[self.density_index(i,k)]+=1j*self.hamiltonian(k,j)/2
                         complex_tmp[self.density_index(i,k)+1]+= -1*self.hamiltonian(k,j)/2
                 else:
                     if self.rotating_wave_approx([self.interaction_freq(i,k)]):
-                    #if 0 in self.efreq+self.interaction_freq(i,k):
                         complex_tmp[self.density_index(k,i)]+=1j*self.hamiltonian(k,j)/2
                         complex_tmp[self.density_index(k,i)+1]+= self.hamiltonian(k,j)/2
         """
@@ -104,11 +110,10 @@ class System:
                 complex_tmp[self.density_index(k,j)]-=1j*self.hamiltonian(i,k)
             else:
                 if j>k:
-                    if self.rotating_wave_approx([self.interaction_freq(k,j)]):                                                 #if 0 in self.efreq+self.interaction_freq(k,j):
+                    if self.rotating_wave_approx([self.interaction_freq(k,j)]):
                         complex_tmp[self.density_index(k,j)]-=1j*self.hamiltonian(i,k)/2
                         complex_tmp[self.density_index(k,j)+1]-= -1*self.hamiltonian(i,k)/2
                 else:
-                    #if 0 in self.efreq+self.interaction_freq(k,j):
                     if self.rotating_wave_approx([self.interaction_freq(k,j)]):
                         complex_tmp[self.density_index(j,k)]-=1j*self.hamiltonian(i,k)/2
                         complex_tmp[self.density_index(j,k)+1]-= self.hamiltonian(i,k)/2
@@ -131,16 +136,13 @@ class System:
                     complex_tmp[self.density_index(i,k)+1] += -1*self.hamiltonian(k,j)
             else:
                 if i==k: #rho_ii
-                    #if 0 in self.efreq+self.interaction_freq(i,k)-self.interaction_freq(i,j):
                     if self.rotating_wave_approx([self.interaction_freq(i,k),-1*self.interaction_freq(i,j)]):
                         complex_tmp[self.density_index(i,k)]+=1j*self.hamiltonian(k,j)/2
                 elif k>i: #rho_ik, upper diagonal
-                    #if 0 in self.efreq+self.interaction_freq(i,k)-self.interaction_freq(i,j):
                     if self.rotating_wave_approx([self.interaction_freq(i,k),-1*self.interaction_freq(i,j)]):
                         complex_tmp[self.density_index(i,k)]+=1j*self.hamiltonian(k,j)/2
                         complex_tmp[self.density_index(i,k)+1]+= -1*self.hamiltonian(k,j)/2
                 else: # lower diagonal
-                    #if 0 in self.efreq+self.interaction_freq(i,k)-self.interaction_freq(i,j):
                     if self.rotating_wave_approx([self.interaction_freq(i,k),-1*self.interaction_freq(i,j)]):
                         complex_tmp[self.density_index(k,i)]+=1j*self.hamiltonian(k,j)/2
                         complex_tmp[self.density_index(k,i)+1]+= self.hamiltonian(k,j)/2
@@ -154,16 +156,13 @@ class System:
                     complex_tmp[self.density_index(k,j)+1] -= -1*self.hamiltonian(i,k)
             else:
                 if j==k:
-                    #if 0 in self.efreq+self.interaction_freq(k,j)-self.interaction_freq(i,j):
                     if self.rotating_wave_approx([self.interaction_freq(k,j),-1*self.interaction_freq(i,j)]):
                         complex_tmp[self.density_index(k,j)]-= 1j*self.hamiltonian(i,k)/2
                 elif j>k:
-                    #if 0 in self.efreq+self.interaction_freq(k,j)-self.interaction_freq(i,j):
                     if self.rotating_wave_approx([self.interaction_freq(k,j),-1*self.interaction_freq(i,j)]):
                         complex_tmp[self.density_index(k,j)]-=1j*self.hamiltonian(i,k)/2
                         complex_tmp[self.density_index(k,j)+1]-= -1*self.hamiltonian(i,k)/2
                 else:
-                    #if 0 in self.efreq+self.interaction_freq(k,j)-self.interaction_freq(i,j):
                     if self.rotating_wave_approx([self.interaction_freq(k,j),-1*self.interaction_freq(i,j)]):
                         complex_tmp[self.density_index(j,k)]-=1j*self.hamiltonian(i,k)/2
                         complex_tmp[self.density_index(j,k)+1]-= self.hamiltonian(i,k)/2
@@ -202,10 +201,12 @@ class System:
             counter +=1
             prog.increment_amount()
             print prog, '\r',
-            sys.stdout.flush()
+#            sys.stdout.flush() ## comment this when use flush at the begining of the file
             system_sweep = self.system.copy()
-            # keep self.system independant of frequency,
-            # only do frequency dependent operation on system_sweep
+            """
+            keep self.system independant of frequency,
+            only do frequency dependent operation on system_sweep
+            """
             self.nu[0]=self.nu2[0]+freq
             system_sweep = self.add_freq(system_sweep)
             system_sweep=np.matrix(system_sweep)
@@ -216,7 +217,9 @@ class System:
     def von_neumann(self,system):
         for i in range(self.n):
             for j in range(self.n):
-                #for every density matrix element
+                """
+                for every density matrix element
+                """
                 if j>i and ([i,j] != [self.n-1,self.n-1]):
                     self.non_diagonal_part(system,i,j)
                 """
@@ -231,6 +234,7 @@ class System:
     def __init__(self,n,omega,dipole,nu,up,low1,low2,Gamma1,Gamma12,Gamma13,gamma1,gamma2 ):
         """
         """
+        print 'initializing...'
         self.n = n
         self.omega = omega
         self.dipole = dipole
@@ -253,26 +257,8 @@ class System:
         self.a=self.a.T
         self.system=np.zeros([self.N,self.N])
         self.system=self.normalize(self.system)
+        print 'von_neumann'
         self.system=self.von_neumann(self.system)
         self.system=self.decoherence(self.system)
 
 if __name__ ==  '__main__':
-    an=3
-    aomega = [351E12,9E9,0]
-    adipole=[[0,1000000,1000000],
-            [1000000,0,0],
-            [1000000,0,0]]
-    #remember to /2
-    anu=[351E12-9E9,351E12] # on resonence
-    aup = [0]
-    alow1 = [1]
-    alow2 = [2]
-    #decoherence
-    aGamma1 = 5000000
-    aGamma12 = 2500000
-    aGamma13 = 2500000
-    agamma1 = 10000
-    agamma2 = 10000
-
-    system = System(an,aomega,adipole,anu,aup,alow1,alow2,aGamma1,aGamma12,aGamma13,agamma1,agamma2)
-    system.sweep(-1E7,1E7,1000)
