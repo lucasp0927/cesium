@@ -2,5 +2,7 @@
 *.txt
 *.dat
 *.pyc
+*.png
+*.gp
 *#
 .#*

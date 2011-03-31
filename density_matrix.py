@@ -132,16 +132,16 @@ class System:
             else:
                 if i==k: #rho_ii
                     #if 0 in self.efreq+self.interaction_freq(i,k)-self.interaction_freq(i,j):
-                    if self.rotating_wave_approx([self.interaction_freq(i,k),-1*self.interaction_freq(i,j)]):                        
+                    if self.rotating_wave_approx([self.interaction_freq(i,k),-1*self.interaction_freq(i,j)]):
                         complex_tmp[self.density_index(i,k)]+=1j*self.hamiltonian(k,j)/2
                 elif k>i: #rho_ik, upper diagonal
                     #if 0 in self.efreq+self.interaction_freq(i,k)-self.interaction_freq(i,j):
-                    if self.rotating_wave_approx([self.interaction_freq(i,k),-1*self.interaction_freq(i,j)]):                                                
+                    if self.rotating_wave_approx([self.interaction_freq(i,k),-1*self.interaction_freq(i,j)]):
                         complex_tmp[self.density_index(i,k)]+=1j*self.hamiltonian(k,j)/2
                         complex_tmp[self.density_index(i,k)+1]+= -1*self.hamiltonian(k,j)/2
                 else: # lower diagonal
                     #if 0 in self.efreq+self.interaction_freq(i,k)-self.interaction_freq(i,j):
-                    if self.rotating_wave_approx([self.interaction_freq(i,k),-1*self.interaction_freq(i,j)]):                                            
+                    if self.rotating_wave_approx([self.interaction_freq(i,k),-1*self.interaction_freq(i,j)]):
                         complex_tmp[self.density_index(k,i)]+=1j*self.hamiltonian(k,j)/2
                         complex_tmp[self.density_index(k,i)+1]+= self.hamiltonian(k,j)/2
         """
@@ -155,16 +155,16 @@ class System:
             else:
                 if j==k:
                     #if 0 in self.efreq+self.interaction_freq(k,j)-self.interaction_freq(i,j):
-                    if self.rotating_wave_approx([self.interaction_freq(k,j),-1*self.interaction_freq(i,j)]):                                                
+                    if self.rotating_wave_approx([self.interaction_freq(k,j),-1*self.interaction_freq(i,j)]):
                         complex_tmp[self.density_index(k,j)]-= 1j*self.hamiltonian(i,k)/2
                 elif j>k:
                     #if 0 in self.efreq+self.interaction_freq(k,j)-self.interaction_freq(i,j):
-                    if self.rotating_wave_approx([self.interaction_freq(k,j),-1*self.interaction_freq(i,j)]):                                                                    
+                    if self.rotating_wave_approx([self.interaction_freq(k,j),-1*self.interaction_freq(i,j)]):
                         complex_tmp[self.density_index(k,j)]-=1j*self.hamiltonian(i,k)/2
                         complex_tmp[self.density_index(k,j)+1]-= -1*self.hamiltonian(i,k)/2
                 else:
                     #if 0 in self.efreq+self.interaction_freq(k,j)-self.interaction_freq(i,j):
-                    if self.rotating_wave_approx([self.interaction_freq(k,j),-1*self.interaction_freq(i,j)]):                                                                    
+                    if self.rotating_wave_approx([self.interaction_freq(k,j),-1*self.interaction_freq(i,j)]):
                         complex_tmp[self.density_index(j,k)]-=1j*self.hamiltonian(i,k)/2
                         complex_tmp[self.density_index(j,k)+1]-= self.hamiltonian(i,k)/2
         for s in range(self.N):
@@ -194,9 +194,9 @@ class System:
 
         return system
 
-    def sweep(self,start,end,points):
+    def sweep(self,start,end,points,filename='./test.txt'):
         counter = 0 # progress bar's counter
-        f=open('./test.txt','w')
+        f=open(filename,'w')# w option will overwrite file if file exist
         prog = ProgressBar(counter, points, 50, mode='fixed', char='#')
         for freq in np.linspace(start,end,points):
             counter +=1
