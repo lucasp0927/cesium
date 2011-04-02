@@ -190,7 +190,7 @@ class System:
 
         return system
 
-    def sweep(self,start,end,points,filename='./test.txt'):
+    def sweep(self,e_num,start,end,points,filename='./test.txt'):
         counter = 0 # progress bar's counter
         f=open(filename,'w')# w option will overwrite file if file exist
         prog = ProgressBar(counter, points, 50, mode='fixed', char='#')
@@ -210,7 +210,7 @@ class System:
             keep self.system independant of frequency,
             only do frequency dependent operation on system_sweep
             """
-            self.nu[0]=self.nu2[0]+freq
+            self.nu[e_num]=self.nu2[e_num]+freq
             system_sweep = self.add_freq(system_sweep)
             system_sweep=np.matrix(system_sweep)
             solution = np.linalg.solve(system_sweep,a)

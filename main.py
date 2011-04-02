@@ -23,6 +23,7 @@ if __name__ ==  '__main__':
     up = [0]
     low1 = [1]
     low2 = [2]
+    
     #decoherence
     Gamma1 = 1000000
     Gamma12 = 500000
@@ -32,6 +33,6 @@ if __name__ ==  '__main__':
     filename = './test.txt'
     
     system = System(n,omega,dipole,nu,e_amp,up,low1,low2,Gamma1,Gamma12,Gamma13,gamma1,gamma2)
-    system.sweep(-1E7,1E7,400,'./test.txt')#TODO: add file name
+    system.sweep(1,-1E7,1E7,400,'./test.txt')#TODO: add file name
     
     plot()
