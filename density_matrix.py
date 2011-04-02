@@ -68,19 +68,18 @@ class System:
             elif ((j in self.low1) and (i in self.low2)):
                 return self.nu[1] - self.nu[0]
             else:
-                print 'interaction_freq error\n'
+                print 'interaction_freq error'
                 print i,j
 
-    def rotating_wave_approx(self,freqs):
-        efrequency = self.efreq.copy()
-        for f in freqs:
-            efrequency += f
-        if 0 in efrequency:
-            return True
+    def rotating_wave_approx(self,freq):
+        for i in range(self.nu.__len__()):
+            if ((self.nu[i] + freq  == 0) or (self.nu[i] - freq == 0)):
+                return [True,i]
         else:
             print 'rotating wave approximation,'
-            print efrequency
-
+            print self.nu + freq, self.nu - freq
+            return [False,0]
+        
     def diagonal_part(self,system,i,j):
         complex_tmp = np.zeros(self.N,dtype='complex')
         """
@@ -90,14 +89,15 @@ class System:
             if k==j: # diagonal hamiltonian
                 complex_tmp[self.density_index(i,k)]+=1j*self.hamiltonian(k,j)
             else:
+                df = self.rotating_wave_approx(self.interaction_freq(i,k))
                 if k>i:
-                    if self.rotating_wave_approx([self.interaction_freq(i,k)]):
-                        complex_tmp[self.density_index(i,k)] += 1j * self.hamiltonian(k,j)/2
-                        complex_tmp[self.density_index(i,k)+1] += -1 * self.hamiltonian(k,j)/2
+                    if df[0]:
+                        complex_tmp[self.density_index(i,k)] += 1j *self.e_amp[df[1]]* self.hamiltonian(k,j)/2
+                        complex_tmp[self.density_index(i,k)+1] += -1 *self.e_amp[df[1]]* self.hamiltonian(k,j)/2
                 else:
-                    if self.rotating_wave_approx([self.interaction_freq(i,k)]):
-                        complex_tmp[self.density_index(k,i)] += 1j * self.hamiltonian(k,j)/2
-                        complex_tmp[self.density_index(k,i)+1] += self.hamiltonian(k,j)/2
+                    if df[0]:
+                        complex_tmp[self.density_index(k,i)] += 1j *self.e_amp[df[1]]* self.hamiltonian(k,j)/2
+                        complex_tmp[self.density_index(k,i)+1] += self.e_amp[df[1]]*self.hamiltonian(k,j)/2
         """
         minus part
         """
@@ -105,14 +105,15 @@ class System:
             if k==i: # diagonal hamiltonian
                 complex_tmp[self.density_index(k,j)]-=1j*self.hamiltonian(i,k)
             else:
+                df = self.rotating_wave_approx(self.interaction_freq(k,j))
                 if j>k:
-                    if self.rotating_wave_approx([self.interaction_freq(k,j)]):
-                        complex_tmp[self.density_index(k,j)] -= 1j * self.hamiltonian(i,k)/2
-                        complex_tmp[self.density_index(k,j)+1] -= -1 * self.hamiltonian(i,k)/2
+                    if df[0]:
+                        complex_tmp[self.density_index(k,j)] -= 1j *self.e_amp[df[1]] * self.hamiltonian(i,k)/2
+                        complex_tmp[self.density_index(k,j)+1] -= -1 * self.e_amp[df[1]] * self.hamiltonian(i,k)/2
                 else:
-                    if self.rotating_wave_approx([self.interaction_freq(k,j)]):
-                        complex_tmp[self.density_index(j,k)] -= 1j * self.hamiltonian(i,k)/2
-                        complex_tmp[self.density_index(j,k)+1] -= self.hamiltonian(i,k)/2
+                    if df[0]:
+                        complex_tmp[self.density_index(j,k)] -= 1j *self.e_amp[df[1]] * self.hamiltonian(i,k)/2
+                        complex_tmp[self.density_index(j,k)+1] -= self.e_amp[df[1]] *self.hamiltonian(i,k)/2
         for num in complex_tmp:
             if num.imag != 0:
                 raise IOError('complex number in density matrix diagonal!')
@@ -130,17 +131,18 @@ class System:
                 complex_tmp[self.density_index(i,k)] += 1j*self.hamiltonian(k,j)
                 complex_tmp[self.density_index(i,k)+1] += -1*self.hamiltonian(k,j)
             else:
+                df=self.rotating_wave_approx(self.interaction_freq(i,k)-1*self.interaction_freq(i,j))
                 if i==k: #rho_ii
-                    if self.rotating_wave_approx([self.interaction_freq(i,k),-1*self.interaction_freq(i,j)]):
-                        complex_tmp[self.density_index(i,k)] += 1j * self.hamiltonian(k,j)/2
+                    if df[0]:
+                        complex_tmp[self.density_index(i,k)] += 1j * self.e_amp[df[1]]*self.hamiltonian(k,j)/2
                 elif k>i: #rho_ik, upper diagonal
-                    if self.rotating_wave_approx([self.interaction_freq(i,k),-1*self.interaction_freq(i,j)]):
-                        complex_tmp[self.density_index(i,k)] += 1j * self.hamiltonian(k,j)/2
-                        complex_tmp[self.density_index(i,k)+1] += -1 * self.hamiltonian(k,j)/2
+                    if df[0]:
+                        complex_tmp[self.density_index(i,k)] += 1j *self.e_amp[df[1]]* self.hamiltonian(k,j)/2
+                        complex_tmp[self.density_index(i,k)+1] += -1 *self.e_amp[df[1]]* self.hamiltonian(k,j)/2
                 else: # lower diagonal
-                    if self.rotating_wave_approx([self.interaction_freq(i,k),-1*self.interaction_freq(i,j)]):
-                        complex_tmp[self.density_index(k,i)] += 1j * self.hamiltonian(k,j)/2
-                        complex_tmp[self.density_index(k,i)+1] +=  self.hamiltonian(k,j)/2
+                    if df[0]:
+                        complex_tmp[self.density_index(k,i)] += 1j *self.e_amp[df[1]]* self.hamiltonian(k,j)/2
+                        complex_tmp[self.density_index(k,i)+1] +=  self.e_amp[df[1]]*self.hamiltonian(k,j)/2
         """
         minus part
         """
@@ -149,17 +151,18 @@ class System:
                 complex_tmp[self.density_index(k,j)] -= 1j*self.hamiltonian(i,k)
                 complex_tmp[self.density_index(k,j)+1] -= -1*self.hamiltonian(i,k)
             else:
+                df = self.rotating_wave_approx(self.interaction_freq(k,j)-1*self.interaction_freq(i,j))
                 if j==k:
-                    if self.rotating_wave_approx([self.interaction_freq(k,j),-1*self.interaction_freq(i,j)]):
-                        complex_tmp[self.density_index(k,j)] -= 1j * self.hamiltonian(i,k)/2
+                    if df[0]:
+                        complex_tmp[self.density_index(k,j)] -= 1j * self.e_amp[df[1]]*self.hamiltonian(i,k)/2
                 elif j>k:
-                    if self.rotating_wave_approx([self.interaction_freq(k,j),-1*self.interaction_freq(i,j)]):
-                        complex_tmp[self.density_index(k,j)] -=1j * self.hamiltonian(i,k)/2
-                        complex_tmp[self.density_index(k,j)+1] -= -1 * self.hamiltonian(i,k)/2
+                    if df[0]:
+                        complex_tmp[self.density_index(k,j)] -=1j *self.e_amp[df[1]]* self.hamiltonian(i,k)/2
+                        complex_tmp[self.density_index(k,j)+1] -= -1 * self.e_amp[df[1]]*self.hamiltonian(i,k)/2
                 else:
-                    if self.rotating_wave_approx([self.interaction_freq(k,j),-1*self.interaction_freq(i,j)]):
-                        complex_tmp[self.density_index(j,k)] -= 1j * self.hamiltonian(i,k)/2
-                        complex_tmp[self.density_index(j,k)+1] -= self.hamiltonian(i,k)/2
+                    if df[0]:
+                        complex_tmp[self.density_index(j,k)] -= 1j * self.e_amp[df[1]]*self.hamiltonian(i,k)/2
+                        complex_tmp[self.density_index(j,k)+1] -= self.e_amp[df[1]]*self.hamiltonian(i,k)/2
         for s in range(self.N):
             system[self.density_index(i,j)][s] = complex_tmp[s].real
             system[self.density_index(i,j)+1][s] = complex_tmp[s].imag
@@ -231,15 +234,16 @@ class System:
                     pass
         return system
 
-    def __init__(self,n,omega,dipole,nu,up,low1,low2,Gamma1,Gamma12,Gamma13,gamma1,gamma2 ):
+    def __init__(self,n,omega,dipole,nu,e_amp,up,low1,low2,Gamma1,Gamma12,Gamma13,gamma1,gamma2 ):
         """
         """
         print 'initializing...'
         self.n = n #number of state
         self.omega = omega
         self.dipole = dipole
-        self.nu = nu
-        self.nu2 = self.nu[:]
+        self.nu = np.array(nu)
+        self.e_amp = e_amp
+        self.nu2 = self.nu.copy()
         self.up = up
         self.low1 = low1
         self.low2 = low2
@@ -248,7 +252,7 @@ class System:
         self.Gamma13 = Gamma13
         self.gamma1 = gamma1
         self.gamma2 = gamma2
-        self.efreq = np.array([-1*nu[0],nu[0],-1*nu[1],nu[1]]) # frequencies of electric field
+        #self.efreq = np.array([-1*nu[0],nu[0],-1*nu[1],nu[1]]) # frequencies of electric field
         self.groups = [up,low1,low2]
         self.N = self.density_length(n) #number of independent density matrix variable
         

@@ -18,7 +18,8 @@ if __name__ ==  '__main__':
             [100000,0,0],
             [100000,0,0]]
     #remember to /2
-    nu=[351E12-9E9,351E12] # on resonence
+    nu = [351E12-9E9,351E12] # on resonence
+    e_amp = [10,10] 
     up = [0]
     low1 = [1]
     low2 = [2]
@@ -26,11 +27,11 @@ if __name__ ==  '__main__':
     Gamma1 = 1000000
     Gamma12 = 500000
     Gamma13 = 500000
-    gamma1 = 10000
-    gamma2 = 10000
+    gamma1 = 0
+    gamma2 = 0
     filename = './test.txt'
     
-    system = System(n,omega,dipole,nu,up,low1,low2,Gamma1,Gamma12,Gamma13,gamma1,gamma2)
+    system = System(n,omega,dipole,nu,e_amp,up,low1,low2,Gamma1,Gamma12,Gamma13,gamma1,gamma2)
     system.sweep(-1E7,1E7,400,'./test.txt')#TODO: add file name
     
     plot()
