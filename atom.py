@@ -104,18 +104,20 @@ class Atom():
         expressed as multiples of <j||er||j'>
         """
         return (math.pow(-1,F2-1+mf1)*math.sqrt(2.0*F1+1.0)*self.threej(F2,1.0,F1,mf2,q,-mf1)*math.pow(-1,F2+J1+1+I)*math.sqrt((2*F2+1)*(2*J1+1))*self.sixj(J1,J2,1,F2,F1,I) if (L1 != L2) else 0)
+    def cg_coef (self,q,L1,L2,F1,F2,mf1,mf2,J1,J2,I):
+        return (math.pow(-1,F2-1+mf1)*math.sqrt(2.0*F1+1.0)*self.threej(F2,1.0,F1,mf2,q,-mf1) if (L1 != L2) else 0)        
 
 if __name__ == "__main__":
     a=Atom()
     coef1 = {'q':0,
              'L1':0,
              'L2':1,
-             'F1':4,
-             'F2':5,
-             'mf1':-1,
-             'mf2':-1,
+             'F1':3,
+             'F2':4,
+             'mf1':-3,
+             'mf2':-3,
              'J1':1.0/2.0,
-             'J2':3.0/2.0,
+             'J2':1.0/2.0,
              'I':7.0/2.0}
 
 #    # from 1 to 2
