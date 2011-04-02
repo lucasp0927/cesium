@@ -50,17 +50,22 @@ class System:
                 return True
         else:
             return False
-
+    def group_num(self,i):
+        for k in range(self.level_group.__len__()):
+            if i in self.level_group[k]:
+                return k
+        else: print 'no level found'
+        
     def interaction_freq(self,i,j):
         if self.same_group(i,j):
             return 0
         else:
             if i == 0:
-                return -1 * self.nu[j-1]
+                return -1 * self.nu[self.group_num(j)-1]
             elif j == 0:
-                return self.nu[i-1]
+                return self.nu[self.group_num(i)-1]
             else:
-                return self.nu[i-1]-self.nu[j-1]
+                return self.nu[self.group_num(i)-1]-self.nu[self.group_num(j)-1]
             """
             if (i in self.up) and (j in self.low1):
                 return -1 * self.nu[0]
@@ -85,8 +90,8 @@ class System:
             if ((self.nu[i] + freq  == 0) or (self.nu[i] - freq == 0)):
                 return [True,i]
         else:
-            print 'rotating wave approximation,'
-            print self.nu + freq, self.nu - freq
+#            print 'rotating wave approximation,'
+#            print self.nu + freq, self.nu - freq
             return [False,0]
         
     def diagonal_part(self,system,i,j):
@@ -180,12 +185,15 @@ class System:
     def decoherence(self,system):
         system[self.density_index(0,0)][self.density_index(0,0)] -= self.Gamma1
         system[self.density_index(1,1)][self.density_index(0,0)] += self.Gamma12
+        system[self.density_index(2,2)][self.density_index(0,0)] += self.Gamma13        
         system[self.density_index(1,1)][self.density_index(1,1)] -= self.gamma1
         system[self.density_index(1,1)][self.density_index(2,2)] += self.gamma2
         system[self.density_index(0,1)][self.density_index(0,1)] -= 0.5*self.Gamma1
         system[self.density_index(0,1)+1][self.density_index(0,1)+1] -= 0.5*self.Gamma1
         system[self.density_index(0,2)][self.density_index(0,2)] -= 0.5*self.Gamma1
-        system[self.density_index(0,2)+1][self.density_index(0,2)+1] -= 0.5*self.Gamma1
+        system[self.density_index(0,2)+1][self.density_index(0,2)+1] -= 0.5*self.Gamma1 
+        system[self.density_index(0,3)][self.density_index(0,2)] -= 0.5*self.Gamma1
+        system[self.density_index(0,3)+1][self.density_index(0,2)+1] -= 0.5*self.Gamma1       
         system[self.density_index(1,2)][self.density_index(1,2)] -= self.gamma2
         system[self.density_index(1,2)+1][self.density_index(1,2)+1] -= self.gamma2
         return system
@@ -222,8 +230,9 @@ class System:
             self.nu[e_num]=self.nu2[e_num]+freq
             system_sweep = self.add_freq(system_sweep)
             system_sweep=np.matrix(system_sweep)
+            #print system_sweep
             solution = np.linalg.solve(system_sweep,a)
-            f.write('%.0f %.8f %.8f %.8f\n'%(freq,solution[0,0],solution[5,0],solution[8,0]))
+            f.write('%.0f %.8f %.8f %.8f %.8f\n'%(freq,solution[0,0],solution[7,0],solution[12,0],solution[15,0]))
 
 
     def von_neumann(self,system):
@@ -243,7 +252,7 @@ class System:
                     pass
         return system
 
-    def __init__(self,n,omega,dipole,nu,e_amp,level_group,Gamma1,Gamma12,Gamma13,gamma1,gamma2 ):
+    def __init__(self,n,omega,dipole,nu,e_amp,level_group,Gamma1,Gamma12,Gamma13,Gamma14,gamma1,gamma2 ):
         """
         """
         print 'initializing...'
@@ -257,6 +266,7 @@ class System:
         self.Gamma1 = Gamma1
         self.Gamma12 = Gamma12
         self.Gamma13 = Gamma13
+        self.Gamma14 = Gamma14
         self.gamma1 = gamma1
         self.gamma2 = gamma2
         #self.efreq = np.array([-1*nu[0],nu[0],-1*nu[1],nu[1]]) # frequencies of electric field
@@ -267,6 +277,7 @@ class System:
         print 'von_neumann'
         self.system = self.von_neumann(self.system)
         self.system = self.decoherence(self.system)
+#        print self.system
 
 if __name__ ==  '__main__':
     pass
