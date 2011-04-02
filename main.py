@@ -20,10 +20,7 @@ if __name__ ==  '__main__':
     #remember to /2
     nu = [351E12-9E9,351E12] # on resonence
     e_amp = [10,10] 
-    up = [0]
-    low1 = [1]
-    low2 = [2]
-    
+    level_group = [[0],[1],[2]]
     #decoherence
     Gamma1 = 1000000
     Gamma12 = 500000
@@ -32,7 +29,7 @@ if __name__ ==  '__main__':
     gamma2 = 0
     filename = './test.txt'
     
-    system = System(n,omega,dipole,nu,e_amp,up,low1,low2,Gamma1,Gamma12,Gamma13,gamma1,gamma2)
+    system = System(n,omega,dipole,nu,e_amp,level_group,Gamma1,Gamma12,Gamma13,gamma1,gamma2)
     system.sweep(1,-1E7,1E7,400,'./test.txt')#TODO: add file name
     
     plot()
