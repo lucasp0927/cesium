@@ -173,14 +173,14 @@ class System:
     def decoherence(self,system):
         system[self.density_index(0,0)][self.density_index(0,0)] -= self.Gamma1
         system[self.density_index(1,1)][self.density_index(0,0)] += self.Gamma12
-        system[self.density_index(1,1)][self.density_index(1,1)] -= self.gamma1
-        system[self.density_index(1,1)][self.density_index(2,2)] += self.gamma2
         system[self.density_index(0,1)][self.density_index(0,1)] -= 0.5*self.Gamma1
         system[self.density_index(0,1)+1][self.density_index(0,1)+1] -= 0.5*self.Gamma1
         system[self.density_index(0,2)][self.density_index(0,2)] -= 0.5*self.Gamma1
         system[self.density_index(0,2)+1][self.density_index(0,2)+1] -= 0.5*self.Gamma1
-        system[self.density_index(1,2)][self.density_index(1,2)] -= self.gamma2
-        system[self.density_index(1,2)+1][self.density_index(1,2)+1] -= self.gamma2
+#        system[self.density_index(1,1)][self.density_index(1,1)] -= self.gamma1
+#        system[self.density_index(1,1)][self.density_index(2,2)] += self.gamma1
+#        system[self.density_index(1,2)][self.density_index(1,2)] -= self.gamma2
+#        system[self.density_index(1,2)+1][self.density_index(1,2)+1] -= self.gamma2
         return system
 
     def add_freq(self,system):
