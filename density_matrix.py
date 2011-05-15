@@ -45,28 +45,31 @@ class System:
         """
         If levels are in same group?
         """
-        for g in self.groups:
+        for g in self.level_group:
             if (i in g) and (j in g):
                 return True
         else:
             return False
 
+    def group_number(self,i):
+        for k in range(self.level_group.__len__()):
+            if i in self.level_group[k]:
+                return k
+        else:
+            raise IOError('no level found in group')
+    
     def interaction_freq(self,i,j):
         if self.same_group(i,j):
             return 0
         else:
-            if (i in self.up) and (j in self.low1):
-                return -1 * self.nu[0]
-            elif ((i in self.up) and (j in self.low2)):
-                return -1 * self.nu[1]
-            elif ((i in self.low1) and (j in self.low2)):
+            if self.group_number(i) == 0:
+                return -1 * self.nu[self.group_number(j)-1]
+            elif self.group_number(i) == 1  and self.group_number(j) == 2:
                 return self.nu[0] - self.nu[1]
-            elif (j in self.up) and (i in self.low1):
-                return self.nu[0]
-            elif ((j in self.up) and (i in self.low2)):
-                return self.nu[1]
-            elif ((j in self.low1) and (i in self.low2)):
+            elif self.group_number(j) == 1  and self.group_number(i) == 2:
                 return self.nu[1] - self.nu[0]
+            elif self.group_number(j) == 0:
+                return self.nu[self.group_number(i)-1]
             else:
                 print 'interaction_freq error'
                 print i,j
@@ -234,7 +237,7 @@ class System:
                     pass
         return system
 
-    def __init__(self,n,omega,dipole,nu,e_amp,up,low1,low2,Gamma1,Gamma12,Gamma13,gamma1,gamma2 ):
+    def __init__(self,n,omega,dipole,nu,e_amp,level_group,Gamma1,Gamma12,Gamma13,gamma1,gamma2 ):
         """
         """
         print 'initializing...'
@@ -244,16 +247,13 @@ class System:
         self.nu = np.array(nu)
         self.e_amp = e_amp
         self.nu2 = self.nu.copy()
-        self.up = up
-        self.low1 = low1
-        self.low2 = low2
+        self.level_group = level_group
         self.Gamma1 = Gamma1
         self.Gamma12 = Gamma12
         self.Gamma13 = Gamma13
         self.gamma1 = gamma1
         self.gamma2 = gamma2
         #self.efreq = np.array([-1*nu[0],nu[0],-1*nu[1],nu[1]]) # frequencies of electric field
-        self.groups = [up,low1,low2]
         self.N = self.density_length(n) #number of independent density matrix variable
         
         self.system = np.zeros([self.N,self.N])
