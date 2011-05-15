@@ -4,7 +4,6 @@ import numpy as np
 import sys
 from progress_bar import ProgressBar
 
-
 class System:
     """
     """
@@ -217,8 +216,12 @@ class System:
             system_sweep = self.add_freq(system_sweep)
             system_sweep=np.matrix(system_sweep)
             solution = np.linalg.solve(system_sweep,a)
-            f.write('%.0f %.8f %.8f %.8f\n'%(freq,solution[0,0],solution[5,0],solution[8,0]))
-
+            # print all diagonal element to file
+            tmp_str = '%.0f'%freq
+            for i in range(self.n):
+                tmp_str += ' %.8f'%solution[self.density_index(i,i),0]
+            tmp_str += '\n'
+            f.write(tmp_str)
 
     def von_neumann(self,system):
         for i in range(self.n):
@@ -253,7 +256,6 @@ class System:
         self.Gamma13 = Gamma13
         self.gamma1 = gamma1
         self.gamma2 = gamma2
-        #self.efreq = np.array([-1*nu[0],nu[0],-1*nu[1],nu[1]]) # frequencies of electric field
         self.N = self.density_length(n) #number of independent density matrix variable
         
         self.system = np.zeros([self.N,self.N])
