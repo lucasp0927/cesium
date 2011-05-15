@@ -78,8 +78,8 @@ class System:
             if ((self.nu[i] + freq  == 0) or (self.nu[i] - freq == 0)):
                 return [True,i]
         else:
-            print 'rotating wave approximation,'
-            print self.nu + freq, self.nu - freq
+            #print 'rotating wave approximation,'
+            #print self.nu + freq, self.nu - freq
             return [False,0]
         
     def diagonal_part(self,system,i,j):
@@ -171,16 +171,24 @@ class System:
         return system
 
     def decoherence(self,system):
+        """
+        dont put terms in self.density_index(n,n), since it is used to normalize.
+        """
         system[self.density_index(0,0)][self.density_index(0,0)] -= self.Gamma1
         system[self.density_index(1,1)][self.density_index(0,0)] += self.Gamma12
+#        system[self.density_index(2,2)][self.density_index(0,0)] += self.Gamma13
         system[self.density_index(0,1)][self.density_index(0,1)] -= 0.5*self.Gamma1
         system[self.density_index(0,1)+1][self.density_index(0,1)+1] -= 0.5*self.Gamma1
         system[self.density_index(0,2)][self.density_index(0,2)] -= 0.5*self.Gamma1
         system[self.density_index(0,2)+1][self.density_index(0,2)+1] -= 0.5*self.Gamma1
-#        system[self.density_index(1,1)][self.density_index(1,1)] -= self.gamma1
+        
+        system[self.density_index(1,1)][self.density_index(1,1)] -= self.gamma1
 #        system[self.density_index(1,1)][self.density_index(2,2)] += self.gamma1
-#        system[self.density_index(1,2)][self.density_index(1,2)] -= self.gamma2
-#        system[self.density_index(1,2)+1][self.density_index(1,2)+1] -= self.gamma2
+#        system[self.density_index(2,2)][self.density_index(2,2)] -= self.gamma2
+#        system[self.density_index(2,2)][self.density_index(1,1)] += self.gamma2
+        
+        system[self.density_index(1,2)][self.density_index(1,2)] -= self.gamma2
+        system[self.density_index(1,2)+1][self.density_index(1,2)+1] -= self.gamma2
         return system
 
     def add_freq(self,system):
@@ -201,7 +209,8 @@ class System:
         a[self.N-1] = 1 #1 because rho_11+rho_22 ... =1
         a = np.matrix(a)
         a = a.T
-        
+
+        print 'system', self.system
         for freq in np.linspace(start,end,points):
             counter +=1
             prog.increment_amount()
@@ -215,6 +224,8 @@ class System:
             self.nu[0]=self.nu2[0]+freq
             system_sweep = self.add_freq(system_sweep)
             system_sweep=np.matrix(system_sweep)
+            #system_sweep = self.normalize(system_sweep)
+#            print 'system_sweep', system_sweep
             solution = np.linalg.solve(system_sweep,a)
             # print all diagonal element to file
             tmp_str = '%.0f'%freq
@@ -260,7 +271,8 @@ class System:
         
         self.system = np.zeros([self.N,self.N])
         self.system = self.normalize(self.system)
-        print 'von_neumann'
+        print 'system',self.system
+        print 'von_neumann...'
         self.system = self.von_neumann(self.system)
         self.system = self.decoherence(self.system)
 
