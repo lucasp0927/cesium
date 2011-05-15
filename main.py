@@ -48,3 +48,4 @@ if __name__ ==  '__main__':
     system = System(n,omega,dipole,nu,e_amp,level_group,Gamma1,Gamma12,Gamma13,gamma1,gamma2)
     system.sweep(-1E7,1E7,400,'./test.txt')#TODO: add file name
     plot(n)
+
