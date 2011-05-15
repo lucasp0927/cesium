@@ -6,12 +6,13 @@ from density_matrix import System
 def plot():
     f=open('./tmp.gp','w')
     f.write('set terminal png\nset output \'graph.png\'\n')
-    f.write('plot \'%s\' using 1:2 with lines, \'%s\' using 1:3 with lines, \'%s\' using 1:4 with lines, \'%s\' using 1:5 with lines \n' %(filename,filename,filename,filename ) )
+    f.write('plot \'%s\' using 1:2 with lines, \'%s\' using 1:3 with lines, \'%s\' using 1:4 with lines \n' %(filename,filename,filename ) )
     f.close()
     os.system('gnuplot tmp.gp')
     os.remove('tmp.gp')
 
 if __name__ ==  '__main__':
+    '''
     n=4
     omega = [351E12,9E9,0,1E5]
     dipole=[[0,0,0,0],
@@ -22,6 +23,16 @@ if __name__ ==  '__main__':
     nu = [351E12-9E9,351E12] # on resonence
     e_amp = [10,10] 
     level_group = [[0,1],[2],[3]]
+    '''
+    n=3
+    omega = [315E12,9E9,0]
+    dipole=[[0,1000000,1000000],
+            [1000000,0,0],
+            [1000000,0,0]]
+    #remember to /2
+    nu = [351E12-9E9,351E12] # on resonence
+    e_amp = [1,1] 
+    level_group = [[0],[1],[2]]
     #decoherence
     Gamma1 = 1000000
     Gamma12 = 500000
