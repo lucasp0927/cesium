@@ -15,14 +15,14 @@ class System:
         """
         n+2(n-1+1)(n-1)/2 because non diagonal terms are complex
         """
-        
+
     def hamiltonian(self,i,j):
         if i==j:
             return self.omega[i]
         else:
             return self.dipole[i][j]
         #rabi frequency
-        
+
     def density_index(self,i,j):
         if j<i:
             raise IOError('only upper diagonal part')
@@ -56,7 +56,7 @@ class System:
                 return k
         else:
             raise IOError('no level found in group')
-    
+
     def interaction_freq(self,i,j):
         if self.same_group(i,j):
             return 0
@@ -81,7 +81,7 @@ class System:
             #print 'rotating wave approximation,'
             #print self.nu + freq, self.nu - freq
             return [False,0]
-        
+
     def diagonal_part(self,system,i,j):
         complex_tmp = np.zeros(self.N,dtype='complex')
         """
@@ -174,21 +174,27 @@ class System:
         """
         dont put terms in self.density_index(n,n), since it is used to normalize.
         """
+        """
         system[self.density_index(0,0)][self.density_index(0,0)] -= self.Gamma1
         system[self.density_index(1,1)][self.density_index(0,0)] += self.Gamma12
-#        system[self.density_index(2,2)][self.density_index(0,0)] += self.Gamma13
         system[self.density_index(0,1)][self.density_index(0,1)] -= 0.5*self.Gamma1
         system[self.density_index(0,1)+1][self.density_index(0,1)+1] -= 0.5*self.Gamma1
         system[self.density_index(0,2)][self.density_index(0,2)] -= 0.5*self.Gamma1
         system[self.density_index(0,2)+1][self.density_index(0,2)+1] -= 0.5*self.Gamma1
-        
         system[self.density_index(1,1)][self.density_index(1,1)] -= self.gamma1
-#        system[self.density_index(1,1)][self.density_index(2,2)] += self.gamma1
-#        system[self.density_index(2,2)][self.density_index(2,2)] -= self.gamma2
-#        system[self.density_index(2,2)][self.density_index(1,1)] += self.gamma2
-        
         system[self.density_index(1,2)][self.density_index(1,2)] -= self.gamma2
         system[self.density_index(1,2)+1][self.density_index(1,2)+1] -= self.gamma2
+        """
+        system[self.density_index(1,1)][self.density_index(1,1)] -= self.Gamma1
+        system[self.density_index(2,2)][self.density_index(1,1)] += self.Gamma12
+        system[self.density_index(0,0)][self.density_index(1,1)] += self.Gamma12        
+        system[self.density_index(1,2)][self.density_index(1,2)] -= 0.5*self.Gamma1
+        system[self.density_index(1,2)+1][self.density_index(1,2)+1] -= 0.5*self.Gamma1
+        system[self.density_index(1,3)][self.density_index(1,3)] -= 0.5*self.Gamma1
+        system[self.density_index(1,3)+1][self.density_index(1,3)+1] -= 0.5*self.Gamma1
+        system[self.density_index(2,2)][self.density_index(2,2)] -= self.gamma1
+        system[self.density_index(2,3)][self.density_index(2,3)] -= self.gamma2
+        system[self.density_index(2,3)+1][self.density_index(2,3)+1] -= self.gamma2
         return system
 
     def add_freq(self,system):
@@ -204,13 +210,13 @@ class System:
         counter = 0 # progress bar's counter
         f=open(filename,'w')# w option will overwrite file if file exist
         prog = ProgressBar(counter, points, 50, mode='fixed', char='#')
-        
+
         a = np.zeros(self.N)
         a[self.N-1] = 1 #1 because rho_11+rho_22 ... =1
         a = np.matrix(a)
         a = a.T
 
-        print 'system', self.system
+#        print 'system', self.system
         for freq in np.linspace(start,end,points):
             counter +=1
             prog.increment_amount()
@@ -224,8 +230,6 @@ class System:
             self.nu[0]=self.nu2[0]+freq
             system_sweep = self.add_freq(system_sweep)
             system_sweep=np.matrix(system_sweep)
-            #system_sweep = self.normalize(system_sweep)
-#            print 'system_sweep', system_sweep
             solution = np.linalg.solve(system_sweep,a)
             # print all diagonal element to file
             tmp_str = '%.0f'%freq
@@ -268,10 +272,9 @@ class System:
         self.gamma1 = gamma1
         self.gamma2 = gamma2
         self.N = self.density_length(n) #number of independent density matrix variable
-        
+
         self.system = np.zeros([self.N,self.N])
         self.system = self.normalize(self.system)
-        print 'system',self.system
         print 'von_neumann...'
         self.system = self.von_neumann(self.system)
         self.system = self.decoherence(self.system)
