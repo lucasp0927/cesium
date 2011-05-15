@@ -72,7 +72,7 @@ class System:
             else:
                 print 'interaction_freq error'
                 print i,j
-            
+
     def rotating_wave_approx(self,freq):
         for i in range(self.nu.__len__()):
             if ((self.nu[i] + freq  == 0) or (self.nu[i] - freq == 0)):
@@ -184,7 +184,6 @@ class System:
         system[self.density_index(1,1)][self.density_index(1,1)] -= self.gamma1
         system[self.density_index(1,2)][self.density_index(1,2)] -= self.gamma2
         system[self.density_index(1,2)+1][self.density_index(1,2)+1] -= self.gamma2
-
         """
         system[self.density_index(1,1)][self.density_index(1,1)] -= self.Gamma1
         system[self.density_index(2,2)][self.density_index(1,1)] += self.Gamma12
@@ -207,10 +206,10 @@ class System:
 
         return system
 
-    def sweep(self,e_num,start,end,points,filename='./test.txt'):
+    def sweep(self,start,end,points,filename='./test.txt'):
         counter = 0 # progress bar's counter
         f=open(filename,'w')# w option will overwrite file if file exist
-#        prog = ProgressBar(counter, points,70, mode='fixed', char='#')
+        prog = ProgressBar(counter, points, 50, mode='fixed', char='#')
 
         a = np.zeros(self.N)
         a[self.N-1] = 1 #1 because rho_11+rho_22 ... =1
@@ -220,18 +219,17 @@ class System:
 #        print 'system', self.system
         for freq in np.linspace(start,end,points):
             counter +=1
-#            prog.increment_amount()
-#            print prog, '\r',
+            prog.increment_amount()
+            print prog, '\r',
             sys.stdout.flush()
             system_sweep = self.system.copy()
             """
             keep self.system independant of frequency,
             only do frequency dependent operation on system_sweep
             """
-            self.nu[e_num]=self.nu2[e_num]+freq
+            self.nu[0]=self.nu2[0]+freq
             system_sweep = self.add_freq(system_sweep)
             system_sweep=np.matrix(system_sweep)
-            #print system_sweep
             solution = np.linalg.solve(system_sweep,a)
             # print all diagonal element to file
             tmp_str = '%.0f'%freq
@@ -280,7 +278,6 @@ class System:
         print 'von_neumann...'
         self.system = self.von_neumann(self.system)
         self.system = self.decoherence(self.system)
-#        print self.system
 
 if __name__ ==  '__main__':
     pass
