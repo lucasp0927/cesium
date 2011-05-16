@@ -16,18 +16,6 @@ def plot(n):
     os.remove('tmp.gp')
 
 if __name__ ==  '__main__':
-    n=4
-    omega = [105E10+1E8,105E10,9E9,0]
-    dipole=[[0,1000000,0,0],
-            [1000000,0,1000000,1000000],
-            [0,1000000,0,0],
-            [0,1000000,0,0]]
-    #remember to /2
-    nu = [105E10-9E9,105E10] # on resonence
-    e_amp = [1,1] 
-    level_group = [[0,1],[2],[3]]
-
-    '''
     n=3
     omega = [105E10,9E9,0]
     dipole=[[0,1000000,1000000],
@@ -37,11 +25,10 @@ if __name__ ==  '__main__':
     nu = [105E10-9E9,105E10] # on resonence
     e_amp = [1,1] 
     level_group = [[0],[1],[2]]
-    '''
     #decoherence
-    Gamma1 = 9000000
-    Gamma12 = 3000000
-    Gamma13 = 3000000
+    Gamma1 = 5000000
+    Gamma12 = 2500000
+    Gamma13 = 2500000
     gamma1 = 10000
     gamma2 = 10000   
     filename = './test.txt'
