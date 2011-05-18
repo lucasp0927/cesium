@@ -28,9 +28,9 @@ class System:
         if j<i:
             raise IOError('only upper diagonal part')
         if i==j:
-            return (self.n + (self.n - i + 1)) * i - i
+            return -i*(i-2*self.n)
         else:
-            return (self.n + (self.n - i + 1)) * i - i + (j - i) * 2 - 1
+            return -1-i*i+2*j+2*i*(-1+self.n)
 
     def normalize(self,matrix):
         """
