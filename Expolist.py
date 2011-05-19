@@ -65,6 +65,7 @@ class Expolist(object):
         """
         Rotating wave approximation
         """
+        #remove terms with freq != 0
         new_terms = filter(lambda x: x.freq==0 and True or False,
                         self.terms)
         self.terms = copy(new_terms)

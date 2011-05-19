@@ -16,7 +16,7 @@ def plot(n):
     os.remove('tmp.gp')
 
 if __name__ ==  '__main__':
-    '''
+
     n=3
     omega = [105E10,9E9,0]
     dipole=[[0,1000000,1000000],
@@ -49,7 +49,7 @@ if __name__ ==  '__main__':
     Gamma13 = 3000000
     gamma1 = 10000
     gamma2 = 10000
-
+    '''
     filename = './test.txt'
     system = System(n,omega,dipole,nu,e_amp,level_group,Gamma1,Gamma12,Gamma13,gamma1,gamma2)
     system.sweep(-1E7,1E7,400,'./test.txt')#TODO: add file name
