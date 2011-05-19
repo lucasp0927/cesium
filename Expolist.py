@@ -9,7 +9,8 @@ class Expolist(object):
     def __init__(self,list=[Expo(0,0)]):
         """
         """
-        self.terms = list
+        self.terms = copy(list)
+        self.simplify()
 
     def __str__(self):
         tmp_str = ''
@@ -70,6 +71,12 @@ class Expolist(object):
                         self.terms)
         self.terms = copy(new_terms)
 
+    def mag(self):
+        if len(self.terms) == 0:
+            return 0
+        else:
+            return self.terms[0].mag
+        
 if __name__ == '__main__':
     a1 = Expo(1,0)
     a0 = Expo(1,1)
