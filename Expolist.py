@@ -57,21 +57,16 @@ class Expolist(object):
                 mag += self.terms[i].mag
             new_terms.append(Expo(mag,freq))
         #delete all terms with magnitude 0
-        new_terms2=[]
-        for i in filter(lambda x: new_terms[x].mag!=0 and True or False,
-                        range(len(new_terms))):
-            new_terms2.append(new_terms[i])
+        new_terms2 = filter(lambda x: x.mag!=0 and True or False,
+                        new_terms)
         self.terms = copy(new_terms2)
         
     def RWA(self):
         """
         Rotating wave approximation
         """
-        new_terms=[]
-        for i in filter(lambda x: self.terms[x].freq==0 and True or False,
-                        range(len(self.terms))):
-        #BUG when delete over one            
-            new_terms.append(self.terms[i])
+        new_terms = filter(lambda x: x.freq==0 and True or False,
+                        self.terms)
         self.terms = copy(new_terms)
 
 if __name__ == '__main__':
