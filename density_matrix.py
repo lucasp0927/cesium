@@ -180,18 +180,16 @@ class System:
                     exposystem[pivot][self.density_index(l,j)] += self.hamiltonian(i,l)*tmp
                     tmp = Expolist([Expo(1,self.interaction_freq(i,l))])
                     exposystem[pivot][self.density_index(i,l)] -= self.hamiltonian(l,j)*tmp
+                    
         for i in range(self.n):
             for j in range(self.n):
                 pivot = self.density_index(i,j)
                 tmp = Expolist([Expo(1/1j,self.interaction_freq(i,j))])#[H,rho]/i<- is here
                 for l in range(self.N):
                     exposystem[pivot][l] *= tmp
-        print exposystem[0][1]
-        print exposystem[0][2]
         '''
         change to RE IM
         '''
-
         for i in range(self.n):
             for j in range(i+1,self.n):
                 # for all upper diagnal element
@@ -238,9 +236,10 @@ class System:
         self.system = np.zeros([self.N,self.N])
         print 'von_neumann...'
         self.system = self.von_neumann(self.system)
+        print 'system\n', self.system        
         self.system = self.decoherence(self.system)
         self.system = self.normalize(self.system)        
-        print 'system\n', self.system
+
 
 
 if __name__ ==  '__main__':
