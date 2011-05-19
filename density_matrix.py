@@ -7,15 +7,6 @@ from progress_bar import ProgressBar
 class System:
     """
     """
-    def density_length(self,n):
-        """
-        Calculate number of independant variable in the density matrix.
-        """
-        return n + (n * (n - 1))
-        """
-        n+2(n-1+1)(n-1)/2 because non diagonal terms are complex
-        """
-        
     def hamiltonian(self,i,j):
         if i==j:
             return self.omega[i]
@@ -285,7 +276,7 @@ class System:
         self.Gamma13 = Gamma13
         self.gamma1 = gamma1
         self.gamma2 = gamma2
-        self.N = self.density_length(n) #number of independent density matrix variable
+        self.N = self.n*self.n #number of independent density matrix variable
         
         self.system = np.zeros([self.N,self.N])
         self.system = self.normalize(self.system)
