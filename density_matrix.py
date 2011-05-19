@@ -176,7 +176,6 @@ class System:
         """
         dont put terms in self.density_index(n,n), since it is used to normalize.
         """
-
         '''
         system[self.density_index(0,0)][self.density_index(0,0)] -= self.Gamma1
         system[self.density_index(1,1)][self.density_index(0,0)] += self.Gamma12
@@ -191,6 +190,7 @@ class System:
 #        system[self.density_index(2,2)][self.density_index(1,1)] += self.gamma2
         system[self.density_index(1,2)][self.density_index(1,2)] -= self.gamma2
         system[self.density_index(1,2)+1][self.density_index(1,2)+1] -= self.gamma2
+
         '''
         system[self.density_index(1,1)][self.density_index(1,1)] -= self.Gamma1
         system[self.density_index(2,2)][self.density_index(1,1)] += self.Gamma12
@@ -208,6 +208,7 @@ class System:
 #        system[self.density_index(3,3)][self.density_index(2,2)] += self.gamma3
         system[self.density_index(2,3)][self.density_index(2,3)] -= self.gamma2
         system[self.density_index(2,3)+1][self.density_index(2,3)+1] -= self.gamma2
+
         return system
 
     def add_freq(self,system):
@@ -290,6 +291,7 @@ class System:
         self.system = self.normalize(self.system)
         print 'von_neumann...'
         self.system = self.von_neumann(self.system)
+        print 'system\n', self.system
         self.system = self.decoherence(self.system)
 
 if __name__ ==  '__main__':
