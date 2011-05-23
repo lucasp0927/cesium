@@ -78,16 +78,6 @@ class System:
                 print 'interaction_freq error'
                 print i,j
 
-    def rotating_wave_approx(self,freq):
-        for i in range(self.nu.__len__()):
-            if ((self.nu[i] + freq  == 0) or (self.nu[i] - freq == 0)):
-                return [True,i]
-        else:
-            #print 'rotating wave approximation,'
-            #print self.nu + freq, self.nu - freq
-            return [False,0]
-
-
     def decoherence(self,system):
         """
         dont put terms in self.density_index(n,n), since it is used to normalize.
@@ -173,14 +163,14 @@ class System:
 
         for i in range(self.n):
             for j in range(self.n):
-                #conjugate
+                #in conjugate form
                 pivot = self.density_index(i,j)
                 for l in range(self.n):
                     tmp = Expolist([Expo(1,self.interaction_freq(l,j))])
-                    exposystem[pivot][self.density_index(l,j)] += self.hamiltonian(i,l)*tmp
+                    exposystem[pivot][self.density_index(l,j)] += self.hamilton[i][l]*tmp
                     tmp = Expolist([Expo(1,self.interaction_freq(i,l))])
-                    exposystem[pivot][self.density_index(i,l)] -= self.hamiltonian(l,j)*tmp
-                    
+                    exposystem[pivot][self.density_index(i,l)] -= self.hamilton[l][j]*tmp
+
         for i in range(self.n):
             for j in range(self.n):
                 pivot = self.density_index(i,j)
@@ -202,7 +192,7 @@ class System:
                 index = self.density_index(i,j)
                 for l in range(self.N):
                     exposystem[index][l],exposystem[index+1][l] = (exposystem[index][l]+exposystem[index+1][l])*0.5,(exposystem[index+1][l]-exposystem[index][l])*0.5j
-
+        print exposystem
         '''
         RWA
         '''
@@ -234,6 +224,7 @@ class System:
         self.gamma2,self.gamma1,self.Gamma13,self.Gamma12,self.Gamma1 = gamma2,gamma1,Gamma13,Gamma12,Gamma1
         self.N = self.n*self.n #number of independent density matrix variable
         self.system = np.zeros([self.N,self.N])
+        self.hamilton = np.array([[self.hamiltonian(i,j) for j in range(n)]for i in range(n)])
         print 'von_neumann...'
         self.system = self.von_neumann(self.system)
         print 'system\n', self.system        

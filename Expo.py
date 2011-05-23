@@ -20,14 +20,16 @@ class Expo(object):
         result = Expo(mag,freq)
         return result
         
-    def __str__(self):
+    def __repr__(self):
         return '%s*Exp(i*%s*t)'%(str(self.mag),str(self.freq))
 
 if __name__ == '__main__':
     a = Expo(1.0+2.0j,1.0)
     b = Expo(2.0,2.0)
+    d=[a,b]
     c=a*b
     print a
     print b
-    print c.__str__()
+
+
         

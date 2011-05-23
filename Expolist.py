@@ -12,10 +12,11 @@ class Expolist(object):
         self.terms = copy(list)
         self.simplify()
 
-    def __str__(self):
-        tmp_str = ''
+    def __repr__(self):
+        tmp_str = '('
         for term in self.terms:
              tmp_str += term.__str__()+','
+        tmp_str += ')'
         return tmp_str
 
     def __add__(self,expolist):
@@ -72,33 +73,15 @@ class Expolist(object):
         self.terms = copy(new_terms)
 
     def mag(self):
+        self.simplify()
         if len(self.terms) == 0:
             return 0
         else:
             return self.terms[0].mag
         
 if __name__ == '__main__':
-    a1 = Expo(1,0)
-    a0 = Expo(1,1)
-    a2 = Expo(2+1j,2)
-    a3 = Expo(3+3j,2)
-    b1 = Expo(2,4)
-    b0 = Expo(2,3)
-    b2 = Expo(3+1j,5)
-    b3 = Expo(3+3j,5)
-    l = [a0,a1]
-    l1 = [b0,b1]
-    a = Expolist(l)
-    b = Expolist(l1)
-    a.simplify()
-    b.simplify()
-    print a
-    print b
-    c=a*b
-    d=a*2
-    e = c-d
-    print c
-    print d
-    print e
-    a.RWA()
-    print a
+    a1 = Expolist([Expo(1,0)])
+    a2 = Expolist()
+    print a1
+    print a2
+    print a1*a2
