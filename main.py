@@ -16,7 +16,6 @@ def plot(n):
     os.remove('tmp.gp')
 
 if __name__ ==  '__main__':
-
     n=3
     omega = [105E10,9E9,0]
     dipole=[[0,1000000,1000000],

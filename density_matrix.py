@@ -11,15 +11,16 @@ class System:
     """
     def hamiltonian(self,i,j):
         """
-        now only for real dipole moment
+        produce hamiltanian matrix
+        now only accept real amplitute
         """
         if i==j:
             return Expolist([Expo(self.omega[i],0)])
         else:
             terms = []
-            for k in range(2):
+            for k in range(2):# two laser freq
                 for l in range(2):
-                    mag = self.dipole[i][j]*self.e_amp[k]
+                    mag = -1*self.dipole[i][j]*self.e_amp[k]/2.0
                     freq = (-1)**l*self.nu[k]
                     terms.append(Expo(mag,freq))
             return Expolist(terms)
@@ -225,13 +226,12 @@ class System:
         self.N = self.n*self.n #number of independent density matrix variable
         self.system = np.zeros([self.N,self.N])
         self.hamilton = np.array([[self.hamiltonian(i,j) for j in range(n)]for i in range(n)])
+        # print self.hamilton
         print 'von_neumann...'
         self.system = self.von_neumann(self.system)
-        print 'system\n', self.system        
+        print 'system\n', self.system
         self.system = self.decoherence(self.system)
-        self.system = self.normalize(self.system)        
-
-
+        self.system = self.normalize(self.system)
 
 if __name__ ==  '__main__':
     n=3
@@ -253,4 +253,3 @@ if __name__ ==  '__main__':
     filename = './test.txt'
     system = System(n,omega,dipole,nu,e_amp,level_group,Gamma1,Gamma12,Gamma13,gamma1,gamma2)
     #system.sweep(-1E7,1E7,400,'./test.txt')#TODO: add file name
-    #plot(n)
