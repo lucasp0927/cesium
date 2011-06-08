@@ -143,14 +143,14 @@ class System:
                         system[self.index(i,i)][self.index(k,i)] += tmp*(-1*1j)
                         tmp = self.hamilton[k][i]*Expolist([Expo(1,-1*self.interaction(i,k))])
                         system[self.index(i,i)][self.index(i,k)] -= tmp*(-1*1j)
-                    else:
+                else:
+                    for k in range(self.n):                    
                         tmp = self.hamilton[i][k]*Expolist([Expo(1,-1*self.interaction(k,j))])
                         tmp *= Expolist([Expo(1,self.interaction(i,j))])
-                        system[self.index(i,k)][self.index(k,j)] += tmp*(-1*1j)
-                        tmp = self.hamilton[k][i]*Expolist([Expo(1,-1*self.interaction(i,k))])
+                        system[self.index(i,j)][self.index(k,j)] += tmp*(-1*1j)
+                        tmp = self.hamilton[k][j]*Expolist([Expo(1,-1*self.interaction(i,k))])
                         tmp *= Expolist([Expo(1,self.interaction(i,j))])                        
-                        system[self.index(i,k)][self.index(j,k)] -= tmp*(-1*1j)
-
+                        system[self.index(i,j)][self.index(i,k)] -= tmp*(-1*1j)
         return system
 
     def to_ri(self,system):
@@ -162,7 +162,6 @@ class System:
         for i in range(self.N):
             for j in range(self.N):
                 system[i][j] = system[i][j].mag()
-        print system
         #transform conjugate to real and imag
         for i in range(3):
             for j in range(i,3):
@@ -205,21 +204,13 @@ class System:
         self.N = self.n**2 #number of independent density matrix variable
         self.system = [[Expolist() for i in range(self.N)] for j in range(self.N)]
         self.hamilton = np.array([[self.hamiltonian(i,j) for j in range(self.n)]for i in range(self.n)])
-
-        # for i in range(3):
-        #     for j in range(3):
-        #         print i,j,self.interaction(i,j)
-
-        # print self.hamilton
         print 'von_neumann...'
         self.system = self.von_neumann(self.system)
         self.system = self.decoherence(self.system)
         self.system = self.to_ri(self.system)
         self.system = self.normalize(self.system)
         self.system = np.array(self.system)
-        print 'system\n', self.system
-
-
+#        print 'system\n', self.system
 
 if __name__ ==  '__main__':
     n=3
