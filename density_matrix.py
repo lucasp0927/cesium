@@ -86,8 +86,8 @@ class System:
         """
         Use this function when system is not yet convert to Real Imaginary format.
         """
-        for i in range(3):
-            for j in range(i,3):
+        for i in range(self.n):
+            for j in range(i,self.n):
                 for item in self.decoherence_matrix[i][j]:
                     tmp=Expolist([Expo(item[2],0)])
                     t = int(self.index(item[0],item[1]))
@@ -163,10 +163,10 @@ class System:
             for j in range(self.N):
                 system[i][j] = system[i][j].mag()
         #transform conjugate to real and imag
-        for i in range(3):
-            for j in range(i,3):
-                for k in range(3):
-                    for l in range(k,3):
+        for i in range(self.n):
+            for j in range(i,self.n):
+                for k in range(self.n):
+                    for l in range(k,self.n):
                         if (i==j and k!=l):
                             id1 = self.index(i,j)
                             id2 = self.index(k,l)
@@ -225,8 +225,6 @@ if __name__ ==  '__main__':
     decoherence_matrix = [[[[0,0,-1*Gamma1]],[[0,1,-0.5*Gamma1]],[[0,2,-0.5*Gamma1]]],
                           [[],[[0,0,Gamma12],[1,1,-1*gamma1],[2,2,gamma1]],[[1,2,-1*gamma2]]],
                           [[],[],[[0,0,Gamma13],[2,2,-1*gamma2],[1,1,gamma2]]]]
-
-    decoherence_system = np.zeros([n*n,n*n])
 
     parameter = {'n':n,
                  'omega':[105E10,9E9,0],
