@@ -80,6 +80,10 @@ class Expolist(object):
             return self.terms[0].mag
         
 if __name__ == '__main__':
+    matrix = [Expolist() for i in range(2)]
+    print Expolist([Expo(1,0)])
+    matrix[0] = matrix[0]+Expolist([Expo(1,0)])
+    print matrix
     a1 = Expolist([Expo(1,0)])
     a2 = Expolist()
     print a1
