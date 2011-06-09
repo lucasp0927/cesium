@@ -29,7 +29,8 @@ if __name__ ==  '__main__':
     # dictf.close()
 
     dictf = open(file_in,'r')
-    parameter = pickle.load(dictf)
+    parameter = eval(dictf.read())
+#    parameter = pickle.load(dictf)
     dictf.close()
     
     # txtf = open(file_in+'.txt','w')
