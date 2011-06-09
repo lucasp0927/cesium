@@ -3,7 +3,7 @@ import sys
 import os
 from density_matrix import System
 import numpy as np
-import pickle 
+import pickle #pickle is not very safe
 
 def plot(n):
     """
@@ -31,7 +31,11 @@ if __name__ ==  '__main__':
     dictf = open(file_in,'r')
     parameter = pickle.load(dictf)
     dictf.close()
-
+    
+    # txtf = open(file_in+'.txt','w')
+    # txtf.write(str(parameter))
+    # txtf.close()
+    
     print 'parameters:'
     print parameter
     
