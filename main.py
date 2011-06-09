@@ -6,6 +6,9 @@ import numpy as np
 import pickle 
 
 def plot(n):
+    """
+    Plot using gnuplot. 
+    """
     f=open('./tmp.gp','w')
     f.write('set terminal png\nset output \'graph.png\'\n')
     tmp_str = 'plot \'%s\' using 1:2 with lines'%file_out
@@ -20,8 +23,7 @@ def plot(n):
 if __name__ ==  '__main__':
     file_in = sys.argv[1]
     file_out = sys.argv[2]
-    #system = System(n,omega,dipole,nu,e_amp,level_group,Gamma1,Gamma12,Gamma13,gamma1,gamma2)
-
+    
     # dictf = open('three_level','w')
     # pickle.dump(parameter,dictf)
     # dictf.close()
