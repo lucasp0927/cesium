@@ -24,9 +24,8 @@ class System:
                     freq = (-1)**l*self.nu[k]
                     terms.append(Expo(mag,freq))
             return Expolist(terms)
-        #rabi frequency
 
-    def density_index(self,i,j):
+    def index(self,i,j):
         if i==j:
             return (self.n + (self.n - i + 1)) * i - i
         elif j<i:
@@ -43,12 +42,12 @@ class System:
         for i in range(self.N):
             matrix[self.N-1][i] = 0
         for i in range(self.n):
-            matrix[self.N - 1][self.density_index(i,i)] = 1
+            matrix[self.N - 1][self.index(i,i)] = 1
         return matrix
 
     def same_group(self,i,j):
         """
-        If levels are in same group?
+        Are levels in the same group?
         """
         for g in self.level_group:
             if (i in g) and (j in g):
@@ -63,7 +62,10 @@ class System:
         else:
             raise IOError('no level found in group')
 
-    def interaction_freq(self,i,j):
+    def interaction(self,i,j):
+        """
+        Return the interaction frequency of level i and j
+        """
         if self.same_group(i,j):
             return 0
         else:
@@ -81,53 +83,30 @@ class System:
 
     def decoherence(self,system):
         """
-        dont put terms in self.density_index(n,n), since it is used to normalize.
+        Use this function before to_ri
         """
-
-        system[self.density_index(0,0)][self.density_index(0,0)] -= self.Gamma1
-        system[self.density_index(1,1)][self.density_index(0,0)] += self.Gamma12
-#        system[self.density_index(2,2)][self.density_index(0,0)] += self.Gamma13
-        system[self.density_index(0,1)][self.density_index(0,1)] -= 0.5*self.Gamma1
-        system[self.density_index(0,1)+1][self.density_index(0,1)+1] -= 0.5*self.Gamma1
-        system[self.density_index(0,2)][self.density_index(0,2)] -= 0.5*self.Gamma1
-        system[self.density_index(0,2)+1][self.density_index(0,2)+1] -= 0.5*self.Gamma1
-        system[self.density_index(1,1)][self.density_index(1,1)] -= self.gamma1
-        system[self.density_index(1,1)][self.density_index(2,2)] += self.gamma1
-#        system[self.density_index(2,2)][self.density_index(2,2)] -= self.gamma2
-#        system[self.density_index(2,2)][self.density_index(1,1)] += self.gamma2
-        system[self.density_index(1,2)][self.density_index(1,2)] -= self.gamma2
-        system[self.density_index(1,2)+1][self.density_index(1,2)+1] -= self.gamma2
-
-        '''
-        system[self.density_index(1,1)][self.density_index(1,1)] -= self.Gamma1
-        system[self.density_index(2,2)][self.density_index(1,1)] += self.Gamma12
-        system[self.density_index(0,0)][self.density_index(1,1)] += self.Gamma12
-#        system[self.density_index(3,3)][self.density_index(1,1)] += self.Gamma13
-        system[self.density_index(1,2)][self.density_index(1,2)] -= 0.5*self.Gamma1
-        system[self.density_index(1,2)+2][self.density_index(1,2)+1] -= 0.5*self.Gamma1
-        system[self.density_index(1,3)][self.density_index(1,3)] -= 0.5*self.Gamma1
-        system[self.density_index(1,3)+2][self.density_index(1,3)+1] -= 0.5*self.Gamma1
-        system[self.density_index(2,2)][self.density_index(2,2)] -= self.gamma1
-        system[self.density_index(2,2)][self.density_index(3,3)] += self.gamma1
-        system[self.density_index(0,0)][self.density_index(2,2)] -= self.gamma1
-        system[self.density_index(0,0)][self.density_index(1,1)] += self.gamma1
-#        system[self.density_index(3,3)][self.density_index(3,3)] -= self.gamma2
-#        system[self.density_index(3,3)][self.density_index(2,2)] += self.gamma3
-        system[self.density_index(2,3)][self.density_index(2,3)] -= self.gamma2
-        system[self.density_index(2,3)+1][self.density_index(2,3)+1] -= self.gamma2
-        '''
+        for i in range(self.n):
+            for j in range(i,self.n):
+                for item in self.decoherence_matrix[i][j]:
+                    tmp=Expolist([Expo(item[2],0)])
+                    t = int(self.index(item[0],item[1]))
+                    system[int(self.index(i,j))][t]+=tmp
         return system
 
     def add_freq(self,system):
+        """
+        Add frequency dependent terms to system matrix.
+        """
         for i in range(self.n):
-            for j in range(self.n):
-                if j>i:
-                    system[self.density_index(i,j)][self.density_index(i,j)+1] -= self.interaction_freq(i,j)
-                    system[self.density_index(i,j) + 1][self.density_index(i,j)] += self.interaction_freq(i,j)
-
+            for j in range(i+1,self.n):
+                system[self.index(i,j)][self.index(i,j)+1] -= self.interaction(i,j)
+                system[self.index(i,j) + 1][self.index(i,j)] += self.interaction(i,j)
         return system
 
     def sweep(self,start,end,points,filename='./test.txt'):
+        """
+        Sweep the frequency and output the result to filename.
+        """
         counter = 0 # progress bar's counter
         f=open(filename,'w')# w option will overwrite file if file exist
         prog = ProgressBar(counter, points, 50, mode='fixed', char='#')
@@ -155,101 +134,92 @@ class System:
             # print all diagonal element to file
             tmp_str = '%.0f'%freq
             for i in range(self.n):
-                tmp_str += ' %.8f'%solution[self.density_index(i,i),0]
+                tmp_str += ' %.8f'%solution[self.index(i,i),0]
             tmp_str += '\n'
             f.write(tmp_str)
 
     def von_neumann(self,system):
-        exposystem=[[Expolist() for x in range(self.N)]for y in range(self.N)]
-
         for i in range(self.n):
-            for j in range(self.n):
-                #in conjugate form
-                pivot = self.density_index(i,j)
-                for l in range(self.n):
-                    tmp = Expolist([Expo(1,self.interaction_freq(l,j))])
-                    exposystem[pivot][self.density_index(l,j)] += self.hamilton[i][l]*tmp
-                    tmp = Expolist([Expo(1,self.interaction_freq(i,l))])
-                    exposystem[pivot][self.density_index(i,l)] -= self.hamilton[l][j]*tmp
-
-        for i in range(self.n):
-            for j in range(self.n):
-                pivot = self.density_index(i,j)
-                tmp = Expolist([Expo(1/1j,self.interaction_freq(i,j))])#[H,rho]/i<- is here
-                for l in range(self.N):
-                    exposystem[pivot][l] *= tmp
-        '''
-        change to RE IM
-        '''
-        for i in range(self.n):
-            for j in range(i+1,self.n):
-                # for all upper diagnal element
-                index = self.density_index(i,j)
-                for l in exposystem:
-                    l[index],l[index+1] = l[index]+l[index+1],(l[index]-l[index+1])*1j
-
-        for i in range(self.n):
-            for j in range(i+1,self.n):
-                index = self.density_index(i,j)
-                for l in range(self.N):
-                    exposystem[index][l],exposystem[index+1][l] = (exposystem[index][l]+exposystem[index+1][l])*0.5,(exposystem[index+1][l]-exposystem[index][l])*0.5j
-        print exposystem
-        '''
-        RWA
-        '''
-        for i in exposystem:
-            for j in i:
-                j.RWA()
-
-        for i in range(self.N):
-            for j in range(self.N):
-                if exposystem[i][j].mag().imag != 0:
-                    print 'non real!'
-                system[i][j] = exposystem[i][j].mag().real
-        '''
-        assert all terms in system is real
-        '''
-
+            for j in range(i,self.n):
+                #for every upper diagonal terms
+                if i==j:
+                    for k in range(self.n):
+                        tmp = self.hamilton[i][k]*Expolist([Expo(1,-1*self.interaction(k,i))])
+                        system[self.index(i,i)][self.index(k,i)] += tmp*(-1*1j)
+                        tmp = self.hamilton[k][i]*Expolist([Expo(1,-1*self.interaction(i,k))])
+                        system[self.index(i,i)][self.index(i,k)] -= tmp*(-1*1j)
+                else:
+                    for k in range(self.n):                    
+                        tmp = self.hamilton[i][k]*Expolist([Expo(1,-1*self.interaction(k,j))])
+                        tmp *= Expolist([Expo(1,self.interaction(i,j))])
+                        system[self.index(i,j)][self.index(k,j)] += tmp*(-1*1j)
+                        tmp = self.hamilton[k][j]*Expolist([Expo(1,-1*self.interaction(i,k))])
+                        tmp *= Expolist([Expo(1,self.interaction(i,j))])                        
+                        system[self.index(i,j)][self.index(i,k)] -= tmp*(-1*1j)
         return system
 
-    def __init__(self,n,omega,dipole,nu,e_amp,level_group,Gamma1,Gamma12,Gamma13,gamma1,gamma2 ):
+    def to_ri(self,system):
+        """
+        Convert conjugate terms in system to real and imag terms. 
+        """
+        # rotating wave approx
+        for i in system:
+            for j in i:
+                j.RWA()
+        #change system to number
+        for i in range(self.N):
+            for j in range(self.N):
+                system[i][j] = system[i][j].mag()
+        #transform conjugate to real and imag
+        for i in range(self.n):
+            for j in range(i,self.n):
+                for k in range(self.n):
+                    for l in range(k,self.n):
+                        if (i==j and k!=l):
+                            id1 = self.index(i,j)
+                            id2 = self.index(k,l)
+                            tmp1 = (system[id1][id2]+system[id1][id2+1]).real
+                            tmp2 = (system[id1][id2]-system[id1][id2+1]).imag          
+                            system[id1][id2],system[id1][id2+1] = tmp1,-1*tmp2
+                        elif i!=j:
+                            id1 = self.index(i,j)
+                            id2 = self.index(k,l)
+                            if k==l:
+                                tmp = system[id1][id2]
+                                system[id1][id2],system[id1+1][id2]=tmp.real,tmp.imag
+                            else:
+                                id1 = self.index(i,j)
+                                id2 = self.index(k,l)
+                                tmp1 = system[id1][id2]+system[id1][id2+1]
+                                tmp2 = system[id1][id2]-system[id1][id2+1]
+                                system[id1][id2],system[id1][id2+1] = tmp1.real,-1*tmp2.imag
+                                system[id1+1][id2],system[id1+1][id2+1] = tmp1.imag,tmp2.real
+        return system
+
+    def __init__(self,parameter):
         """
         """
+        #initialize variables
         print 'initializing...'
-        self.n = n #number of state
-        self.dipole,self.omega = dipole,omega
-        self.nu = np.array(nu)
-        self.e_amp = e_amp
+        self.n = parameter['n'] #number of state
+        self.dipole = parameter['dipole']
+        self.omega = parameter['omega']
+        self.nu = np.array(parameter['nu'])
+        self.e_amp = parameter['e_amp']
         self.nu2 = self.nu.copy()
-        self.level_group = level_group
-        self.gamma2,self.gamma1,self.Gamma13,self.Gamma12,self.Gamma1 = gamma2,gamma1,Gamma13,Gamma12,Gamma1
-        self.N = self.n*self.n #number of independent density matrix variable
-        self.system = np.zeros([self.N,self.N])
-        self.hamilton = np.array([[self.hamiltonian(i,j) for j in range(n)]for i in range(n)])
-        # print self.hamilton
+        self.level_group = parameter['level_group']
+        self.decoherence_matrix = parameter['decoherence_matrix']
+
+        self.N = self.n**2 #number of independent density matrix variable
+        self.system = [[Expolist() for i in range(self.N)] for j in range(self.N)]
+        self.hamilton = np.array([[self.hamiltonian(i,j) for j in range(self.n)]for i in range(self.n)])
+        #Start calculate
         print 'von_neumann...'
-        self.system = self.von_neumann(self.system)
-        print 'system\n', self.system
-        self.system = self.decoherence(self.system)
-        self.system = self.normalize(self.system)
+        self.system = self.von_neumann(self.system) #(H rho-rho H)/i
+        self.system = self.decoherence(self.system) #Add decoherence terms
+        self.system = self.to_ri(self.system) 
+        self.system = self.normalize(self.system) #change last row of system matrix to normalize condition.
+        self.system = np.array(self.system) #convert system to np.array, so that it can be solved using scipy.
 
 if __name__ ==  '__main__':
-    n=3
-    omega = [105E10,9E9,0]
-    dipole=[[0,1000000,1000000],
-            [1000000,0,0],
-            [1000000,0,0]]
-    #remember to /2
-    nu = [105E10-9E9,105E10] # on resonence
-    e_amp = [1,1]
-    level_group = [[0],[1],[2]]
-    #decoherence
-    Gamma1 = 5000000
-    Gamma12 = 2500000
-    Gamma13 = 2500000
-    gamma1 = 10000
-    gamma2 = 10000
-
-    filename = './test.txt'
-    system = System(n,omega,dipole,nu,e_amp,level_group,Gamma1,Gamma12,Gamma13,gamma1,gamma2)
-    #system.sweep(-1E7,1E7,400,'./test.txt')#TODO: add file name
+    pass
