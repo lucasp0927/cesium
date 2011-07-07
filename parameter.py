@@ -134,7 +134,7 @@ def decoherence(parameter):
                                      'I':7.0/2.0}
                             tmp = Gamma*cs.cg_coef(**coef1)*cs.cg_coef(**coef2)
                             if tmp != 0.0:
-                                parameter['decoherence_matrix'][i][j].append([int(i-q),int(j-q),tmp])
+                                parameter['decoherence_matrix'][i][j].append([d1[2]+4-q,d2[2]+4-q,tmp])
     return parameter
     
 if __name__ == '__main__':
@@ -144,7 +144,7 @@ if __name__ == '__main__':
                #            [1000000, 0, 1000000, 1000000],
                #            [0, 1000000, 0, 0],
                #            [0, 1000000, 0, 0]],
-               'e_amp': [1, 1],
+               'e_amp': [100, 100],
                'n': 32
                #'decoherence_matrix': [[[[0, 0, 3000000]], [[0, 1, -9000000]], [[0, 0, 0]], [[0, 0, 0]]],
                           # [[], [[1, 1, -9000000]], [[1, 2, -4500000.0]], [[1, 3, -4500000.0]]],

@@ -41,5 +41,5 @@ if __name__ ==  '__main__':
     print parameter
     
     system = System(parameter)
-    system.sweep(-1E7,1E7,400,file_out)#TODO: add file name
+    system.sweep(-1E10,1E10,100,file_out)#TODO: add file name
     plot(parameter['n'])
