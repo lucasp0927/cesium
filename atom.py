@@ -121,7 +121,7 @@ class Atom():
         return (cg*fer*er if (L1 != L2) else 0) #this is the formula 34 on D line data
     
     def cg_coef (self,q,L1,L2,F1,F2,mf1,mf2,J1,J2,I):
-        return (math.pow(-1,F2-1+mf1)*math.sqrt(2.0*F1+1.0)*self.threej(F2,1.0,F1,mf2,q,-mf1) if (L1 != L2) else 0)        
+        return (math.pow(-1,F2-1+mf1)*math.sqrt(2.0*F1+1.0)*self.threej(F2,1.0,F1,mf2,q,-mf1) if (L1 != L2) else 0)         # this may be wrong!!!
 
 if __name__ == "__main__":
     a=Atom()
