@@ -39,7 +39,8 @@ if __name__ ==  '__main__':
     
     print 'parameters:'
     print parameter
-    
+
     system = System(parameter)
-    system.sweep(2,-1E7,1E7,400,file_out)#TODO: add file name
+    parameter['sweep_profile'].append(file_out)
+    system.sweep(*parameter['sweep_profile'])# can parameter add after unpack array?
     plot(parameter['n'])
