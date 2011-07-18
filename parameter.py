@@ -165,9 +165,4 @@ if __name__ == '__main__':
     txtf = open(filename+'.txt','w')
     txtf.write(str(parameter))
     txtf.close()
-    # for i in range(32):
-    #     print i
-    #     print index2lfm(i)
-    #     print lfm2index(*index2lfm(i))
-    #     print '\n'
-    #print parameter
+

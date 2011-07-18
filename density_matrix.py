@@ -75,14 +75,6 @@ class System:
                 return -1*self.nu[self.group_number(i)-1]
             else:
                 return self.nu[self.group_number(j)-1]-self.nu[self.group_number(i)-1]
-            # elif self.group_number(i) == 1  and self.group_number(j) == 2:
-            #     return self.nu[1] - self.nu[0]
-            # elif self.group_number(j) == 1  and self.group_number(i) == 2:
-            #     return self.nu[0] - self.nu[1]
-            # else:
-            #     print 'interaction_freq error'
-            #     print i,j
-            
             
     def decoherence(self,system):
         """

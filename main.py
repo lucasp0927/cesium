@@ -36,9 +36,6 @@ if __name__ ==  '__main__':
     # txtf = open(file_in+'.txt','w')
     # txtf.write(str(parameter))
     # txtf.close()
-    
-    print 'parameters:'
-    print parameter
 
     system = System(parameter)
     parameter['sweep_profile'].append(file_out)
