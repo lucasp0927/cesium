@@ -103,8 +103,9 @@ class System:
                 system[self.index(i,j) + 1][self.index(i,j)] += self.interaction(i,j)
         return system
 
-    def sweep(self,start,end,points,filename='./test.txt'):
+    def sweep(self,sweep_n,start,end,points,filename='./test.txt'):
         """
+        nu[sweep_n] is sweeped.
         Sweep the frequency and output the result to filename.
         """
         counter = 0 # progress bar's counter
@@ -126,7 +127,7 @@ class System:
             keep self.system independant of frequency,
             only do frequency dependent operation on system_sweep
             """
-            self.nu[0]=self.nu2[0]+freq
+            self.nu[sweep_n]=self.nu2[sweep_n]+freq
             system_sweep = self.add_freq(system_sweep)
             system_sweep=np.matrix(system_sweep)
             #system_sweep = self.normalize(system_sweep)
