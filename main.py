@@ -4,8 +4,36 @@ import os
 from density_matrix import System
 import numpy as np
 import pickle #pickle is not very safe
+import matplotlib.pyplot as plt
 
-def plot(n):
+def count_line():
+    """
+    count lines in file_out
+    """
+    f = open(file_out,'r')
+    line = 0
+    for aline in f:
+        line += 1
+    f.close()
+    return line
+
+def plot_plt(n):
+    line = count_line()
+    f = open(file_out,'r')
+    data = np.zeros([n+1,line])
+    for aline in enumerate(f):
+        data[:,aline[0]] = map(float,aline[1].split())
+    f.close()
+    plt.figure()
+    plt.xlabel("frequency (Hz)")
+    for i in range(n):
+        plt.plot(data[0,:],data[i+1,:],label = str(i))
+    plt.legend()
+    plt.savefig("graph.png")
+    plt.show()
+    
+
+def plot_gnuplot(n):
     """
     Plot using gnuplot. 
     """
@@ -40,4 +68,5 @@ if __name__ ==  '__main__':
     system = System(parameter)
     parameter['sweep_profile'].append(file_out)
     system.sweep(*parameter['sweep_profile'])# can parameter add after unpack array?
-    plot(parameter['n'])
+    # plot_gnuplot(parameter['n'])
+    plot_plt(parameter['n'])

@@ -133,7 +133,8 @@ class System:
                 tmp_str += ' %.8f'%solution[self.index(i,i),0]
             tmp_str += '\n'
             f.write(tmp_str)
-
+        f.close()
+        
     def von_neumann(self,system):
         for i in range(self.n):
             for j in range(i,self.n):
