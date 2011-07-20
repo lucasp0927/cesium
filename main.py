@@ -29,7 +29,7 @@ def plot_plt(n):
     for i in range(n):
         plt.plot(data[0,:],data[i+1,:],label = str(i))
     plt.legend()
-    plt.savefig("graph.png")
+    plt.savefig("%s.png"%(file_out) )
     plt.show()
     
 
@@ -38,7 +38,7 @@ def plot_gnuplot(n):
     Plot using gnuplot. 
     """
     f=open('./tmp.gp','w')
-    f.write('set terminal png\nset output \'graph.png\'\n')
+    f.write('set terminal png\nset output \'%s.png\'\n'%(file_out) )
     tmp_str = 'plot \'%s\' using 1:2 with lines'%file_out
     for i in range(n-1):
         tmp_str += ', \'%s\' using 1:%d with lines'%(file_out,i+3)
