@@ -70,4 +70,3 @@ if __name__ ==  '__main__':
     system.sweep(*parameter['sweep_profile'])# can parameter add after unpack array?
     # plot_gnuplot(parameter['n'])
     plot_plt(parameter['n'])
-
