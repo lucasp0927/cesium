@@ -102,10 +102,26 @@ class Atom():
     def dipole_element (self,q,L1,L2,F1,F2,mf1,mf2,J1,J2,I):
         """
         expressed as multiples of <j||er||j'>
+        1 is S
+        2 is P
         """
-        return (math.pow(-1,F2-1+mf1)*math.sqrt(2.0*F1+1.0)*self.threej(F2,1.0,F1,mf2,q,-mf1)*math.pow(-1,F2+J1+1+I)*math.sqrt((2*F2+1)*(2*J1+1))*self.sixj(J1,J2,1,F2,F1,I) if (L1 != L2) else 0)
+        #<J|er|J'>
+        if J1 == 0.5 and J2 == 0.5:
+            er = 2.7020e-29
+        elif J1 == 0.5 and J2 == 1.5:
+            er = 3.8014e-29
+        elif J1 == 1.5 and J2 == 0.5:
+            er = 3.8014e-29
+        else:
+            print 'J1 or J2 in incorrect'
+            
+        cg = self.cg_coef(q,L1,L2,F1,F2,mf1,mf2,J1,J2,I)
+        # <F|er|f'>
+        fer = math.pow(-1,F2+J1+1+I)*math.sqrt((2*F2+1)*(2*J1+1))*self.sixj(J1,J2,1,F2,F1,I)
+        return (cg*fer*er if (L1 != L2) else 0) #this is the formula 34 on D line data
+    
     def cg_coef (self,q,L1,L2,F1,F2,mf1,mf2,J1,J2,I):
-        return (math.pow(-1,F2-1+mf1)*math.sqrt(2.0*F1+1.0)*self.threej(F2,1.0,F1,mf2,q,-mf1) if (L1 != L2) else 0)        
+        return (math.pow(-1,F2-1+mf1)*math.sqrt(2.0*F1+1.0)*self.threej(F2,1.0,F1,mf2,q,-mf1) if (L1 != L2) else 0)         # this may be wrong!!!
 
 if __name__ == "__main__":
     a=Atom()
@@ -117,9 +133,20 @@ if __name__ == "__main__":
              'mf1':-3,
              'mf2':-3,
              'J1':1.0/2.0,
-             'J2':1.0/2.0,
+             'J2':3.0/2.0,
              'I':7.0/2.0}
+    coef2 = {'q':0,
+             'L1':1,
+             'L2':0,
+             'F1':4,
+             'F2':3,
+             'mf1':-3,
+             'mf2':-3,
+             'J1':3.0/2.0,
+             'J2':1.0/2.0,
+             'I':7.0/2.0}    
 
 #    # from 1 to 2
-    # is revers direction correct?
+    # is revers direction correct
     print a.dipole_element(**coef1) #unpack
+    print a.dipole_element(**coef2) #unpack    

@@ -24,7 +24,6 @@ class System:
                     freq = (-1)**l*self.nu[k]
                     terms.append(Expo(mag,freq))
             return Expolist(terms)
-        #rabi frequency
 
     def index(self,i,j):
         if i==j:
@@ -48,7 +47,7 @@ class System:
 
     def same_group(self,i,j):
         """
-        If levels are in same group?
+        Are levels in the same group?
         """
         for g in self.level_group:
             if (i in g) and (j in g):
@@ -65,26 +64,21 @@ class System:
 
     def interaction(self,i,j):
         """
-        checked
+        Return the interaction frequency of level i and j
         """
         if self.same_group(i,j):
             return 0
         else:
             if self.group_number(i) == 0:
                 return self.nu[self.group_number(j)-1]
-            elif self.group_number(i) == 1  and self.group_number(j) == 2:
-                return self.nu[1] - self.nu[0]
-            elif self.group_number(j) == 1  and self.group_number(i) == 2:
-                return self.nu[0] - self.nu[1]
             elif self.group_number(j) == 0:
                 return -1*self.nu[self.group_number(i)-1]
             else:
-                print 'interaction_freq error'
-                print i,j
-
+                return self.nu[self.group_number(j)-1]-self.nu[self.group_number(i)-1]
+            
     def decoherence(self,system):
         """
-        Use this function when system is not yet convert to Real Imaginary format.
+        Use this function before to_ri
         """
         for i in range(self.n):
             for j in range(i,self.n):
@@ -95,13 +89,20 @@ class System:
         return system
 
     def add_freq(self,system):
+        """
+        Add frequency dependent terms to system matrix.
+        """
         for i in range(self.n):
             for j in range(i+1,self.n):
                 system[self.index(i,j)][self.index(i,j)+1] -= self.interaction(i,j)
                 system[self.index(i,j) + 1][self.index(i,j)] += self.interaction(i,j)
         return system
 
-    def sweep(self,start,end,points,filename='./test.txt'):
+    def sweep(self,sweep_n,start,end,points,filename='./test.txt'):
+        """
+        nu[sweep_n] is sweeped.
+        Sweep the frequency and output the result to filename.
+        """
         counter = 0 # progress bar's counter
         f=open(filename,'w')# w option will overwrite file if file exist
         prog = ProgressBar(counter, points, 50, mode='fixed', char='#')
@@ -121,7 +122,7 @@ class System:
             keep self.system independant of frequency,
             only do frequency dependent operation on system_sweep
             """
-            self.nu[0]=self.nu2[0]+freq
+            self.nu[sweep_n]=self.nu2[sweep_n]+freq
             system_sweep = self.add_freq(system_sweep)
             system_sweep=np.matrix(system_sweep)
             #system_sweep = self.normalize(system_sweep)
@@ -132,7 +133,8 @@ class System:
                 tmp_str += ' %.8f'%solution[self.index(i,i),0]
             tmp_str += '\n'
             f.write(tmp_str)
-
+        f.close()
+        
     def von_neumann(self,system):
         for i in range(self.n):
             for j in range(i,self.n):
@@ -154,6 +156,9 @@ class System:
         return system
 
     def to_ri(self,system):
+        """
+        Convert conjugate terms in system to real and imag terms. 
+        """
         # rotating wave approx
         for i in system:
             for j in i:
@@ -191,6 +196,7 @@ class System:
     def __init__(self,parameter):
         """
         """
+        #initialize variables
         print 'initializing...'
         self.n = parameter['n'] #number of state
         self.dipole = parameter['dipole']
@@ -204,39 +210,14 @@ class System:
         self.N = self.n**2 #number of independent density matrix variable
         self.system = [[Expolist() for i in range(self.N)] for j in range(self.N)]
         self.hamilton = np.array([[self.hamiltonian(i,j) for j in range(self.n)]for i in range(self.n)])
+        #Start calculate
         print 'von_neumann...'
-        self.system = self.von_neumann(self.system)
-        self.system = self.decoherence(self.system)
-        self.system = self.to_ri(self.system)
-        self.system = self.normalize(self.system)
-        self.system = np.array(self.system)
-#        print 'system\n', self.system
+        self.system = self.von_neumann(self.system) #(H rho-rho H)/i
+        self.system = self.decoherence(self.system) #Add decoherence terms
+        self.system = self.to_ri(self.system) 
+        self.system = self.normalize(self.system) #change last row of system matrix to normalize condition.
+        self.system = np.array(self.system) #convert system to np.array, so that it can be solved using scipy.
 
 if __name__ ==  '__main__':
-    n=3
-    #decoherence
-    Gamma1 = 5000000
-    Gamma12 = 2500000
-    Gamma13 = 2500000
-    gamma1 = 10000
-    gamma2 = 10000
-    #in conjugate form
-    #decoherence
-    decoherence_matrix = [[[[0,0,-1*Gamma1]],[[0,1,-0.5*Gamma1]],[[0,2,-0.5*Gamma1]]],
-                          [[],[[0,0,Gamma12],[1,1,-1*gamma1],[2,2,gamma1]],[[1,2,-1*gamma2]]],
-                          [[],[],[[0,0,Gamma13],[2,2,-1*gamma2],[1,1,gamma2]]]]
+    pass
 
-    parameter = {'n':n,
-                 'omega':[105E10,9E9,0],
-                 'dipole':[[0,1000000,1000000],
-                           [1000000,0,0],
-                           [1000000,0,0]],
-                 'nu':[105E10-9E9,105E10], # on resonence
-                 'e_amp':[1,1],#amplitude of electric field
-                 'level_group':[[0],[1],[2]],
-                 'decoherence_matrix': decoherence_matrix
-                 }
-
-    filename = './test.txt'
-    system = System(parameter)
-    #system.sweep(-1E7,1E7,400,'./test.txt')#TODO: add file name

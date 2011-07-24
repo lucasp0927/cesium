@@ -1,9 +1,11 @@
 #test file#
-*.txt
-*.dat
+/*.txt
+/*.dat
 *.pyc
 *.png
 *.gp
 *#
 .#*
 .ropeproject
+.zcache
+
