@@ -2,30 +2,30 @@
 import sys
 import numpy as np
 from atom import Atom
+from __future__ import division
 filename =  sys.argv[1]
+
 # D1 line Energy level diagram
-#    _   F=4 9 levels -
-# _< _B               } group1
-# |  _C  F=3 7 levels -
+# _C     F=3 7 levels group 1
 # |
-# |A
+# |F
 # |
 # |  _   F=4 9 levels group 2
 # _< _D
 #    _E  F=3 7 levels group 3
 # in Hz
+# total 23 levels
+
 A=335.116048807e12
 B=510.860e6
 C=656.820e6
 D=4.021776399375e9
 E=5.170855370625e9
-
+F=A-C
 def omega(parameter):
     parameter['omega']=[]
-    for i in range(9):
-        parameter['omega'].append(E+A+B)
     for i in range(7):
-        parameter['omega'].append(E+A-C)
+        parameter['omega'].append(F)
     for i in range(9):
         parameter['omega'].append(E+D)
     for i in range(7):
@@ -33,35 +33,34 @@ def omega(parameter):
     return parameter
 
 def index2lfm(n):
-    #9 7 9 7
-    #0~8 9~15 16~24 25~31
+    #7 9 7
+    #0~6 7~15 16~22
     # note the order of m
-    if n < 16:
+    if n < 7:
         l = 1
     else:
         l = 0
-    if n<9:
-        f = 4
-        m = n-4
-    elif n>8 and n< 16:
+    if n<7:
         f = 3
-        m = n - 9 - 3
-    elif n>15 and n<25:
+        m = n-3
+    elif n>6 and n<16:
         f = 4
-        m = n - 16 - 4
+        m = n - 7 - 4
     else:
         f=3
-        m = n - 25 - 3
+        m = n - 16 - 3
     return l,f,m
 
 def lfm2index(l,f,m):
     if l==0:
-        index = 16.0
+        index = 7
+        if f == 4:
+            index += m + 4
+        elif f ==3:
+            index += m + 3
     else:
-        index = 0.0
-    if f == 3.0:
-        index += 9.0
-    index += m+f
+        index = 0
+        index += m + 3
     return index
 
 def dipole(parameter):
