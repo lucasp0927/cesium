@@ -113,15 +113,14 @@ class Atom():
         elif J1 == 1.5 and J2 == 0.5:
             er = 3.8014e-29
         else:
-            print 'J1 or J2 in incorrect'
-            
+            print 'J1 or J2 is incorrect'
         cg = self.cg_coef(q,L1,L2,F1,F2,mf1,mf2,J1,J2,I)
         # <F|er|f'>
         fer = math.pow(-1,F2+J1+1+I)*math.sqrt((2*F2+1)*(2*J1+1))*self.sixj(J1,J2,1,F2,F1,I)
         return (cg*fer*er if (L1 != L2) else 0) #this is the formula 34 on D line data
-    
+
     def cg_coef (self,q,L1,L2,F1,F2,mf1,mf2,J1,J2,I):
-        return (math.pow(-1,F2-1+mf1)*math.sqrt(2.0*F1+1.0)*self.threej(F2,1.0,F1,mf2,q,-mf1) if (L1 != L2) else 0)         # this may be wrong!!!
+        return (math.pow(-1,F2-1+mf1)*math.sqrt(2.0*F1+1.0)*self.threej(F2,1.0,F1,mf2,q,-mf1) if (L1 != L2) else 0)
 
 if __name__ == "__main__":
     a=Atom()
@@ -144,9 +143,9 @@ if __name__ == "__main__":
              'mf2':-3,
              'J1':3.0/2.0,
              'J2':1.0/2.0,
-             'I':7.0/2.0}    
+             'I':7.0/2.0}
 
 #    # from 1 to 2
     # is revers direction correct
-    print a.dipole_element(**coef1) #unpack
-    print a.dipole_element(**coef2) #unpack    
+    print a.dipole_element(**coef1)/3.8014e-29 #unpack
+    print a.cg_coef(**coef2) #unpack

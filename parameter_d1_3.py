@@ -3,6 +3,7 @@ from __future__ import division
 import sys
 import numpy as np
 from atom import Atom
+from math import pow
 
 # D1 line Energy level diagram
 # _C     F=3 7 levels group 1
@@ -108,6 +109,22 @@ def decoherence(parameter):
     e l=1 f=3 g l=0 f=4
     e l=1 f=3 g l=0 f=3
     """
+    # for f in (3.0,4.0):
+    #     for m in range(-1*f,f+1):
+    #         for m2 in range(-3,4)
+    #             for q in (-1.0,0.0,1.0):
+    #                   coef1 = {'q':q,
+    #                            'L1':0,
+    #                            'L2':1,
+    #                            'F1':f,
+    #                            'F2':3,
+    #                            'mf1':m,
+    #                            'mf2':m2,
+    #                            'J1':1.0/2.0,
+    #                            'J2':1.0/2.0,
+    #                            'I':7.0/2.0}
+    #                   tmp = Gamma * pow(cs.cg_coef(**coef1),2)
+    #                   parameter['decoherence_matrix'][i][j].append([lfm2index(pair[0][0],pair[0][1],d1[2]+q),lfm2index(pair[0][0],pair[0][1],d2[2]+q),tmp])                  
     egpair=(((1,3),(0,4)),((1,3),(0,3)))
     for pair in egpair:
         print pair
