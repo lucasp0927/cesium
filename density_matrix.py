@@ -111,7 +111,6 @@ class System:
         a[self.N-1] = 1 #1 because rho_11+rho_22 ... =1
         a = np.matrix(a)
         a = a.T
-
         for freq in np.linspace(start,end,points):
             counter +=1
             prog.increment_amount()

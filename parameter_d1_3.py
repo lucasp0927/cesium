@@ -104,32 +104,31 @@ def decoherence(parameter):
     n=parameter['n']
     parameter['decoherence_matrix'] = [[[] for i in range(n)] for j in range(n)]
     cs = Atom()
-    for i in range(n):
-        for j in range(n):
-            d1 = index2lfm(i)
-            d2 = index2lfm(j)
-            if d1[0] != d2[0]: # l is different
-                # defind ground state and excited state
-                if d1[0] == 0: #excited state is the one with l=1
-                    g = d1[1] 
-                    e = d2[1]
-                else:
-                    g = d2[1]
-                    e = d1[1]
-                if d1[1] == e and d2[1] == e and d1[0] == 1 and d2[0] == 1 :
+    """
+    e l=1 f=3 g l=0 f=4
+    e l=1 f=3 g l=0 f=3
+    """
+    egpair=(((1,3),(0,4)),((1,3),(0,3)))
+    for pair in egpair:
+        print pair
+        for i in range(n):
+            for j in range(i,n):
+                d1 = index2lfm(i)
+                d2 = index2lfm(j)
+                if d1[0:2] == pair[0] and d2[0:2] == pair[0]:
                     parameter['decoherence_matrix'][i][j].append([i,j,-1.0*Gamma])
-                elif d1[1] == e and d1[0] == 1 and d2[1] == g and d2[0] == 0 :
+                elif d1[0:2] == pair[0] and d2[0:2] == pair[1]:
                     parameter['decoherence_matrix'][i][j].append([i,j,-1.0*Gamma/2.0])
-                elif d1[1] == g and d1[0] == 0 and d2[1] == e and d2[0] == 1 :
+                elif d1[0:2] == pair[1] and d2[0:2] == pair[0]:
                     parameter['decoherence_matrix'][i][j].append([i,j,-1.0*Gamma/2.0])
-                elif d1[1] == g and d2[1] == g and d1[0] == 0 and d2[0] == 0:
-                    for q in [-1.0,0.0,1.0]:
+                elif d1[0:2] == pair[1] and d2[0:2] == pair[1]:
+                    for q in (-1.0,0.0,1.0):
                         if (d1[2]+q <= d1[1] and d1[2]+q >= -1*d1[1]) and (d2[2]+q <= d2[1] and d2[2]+q >= -1*d2[1]):
                             coef1 = {'q':q,
                                      'L1':0,
                                      'L2':1,
-                                     'F1':g,
-                                     'F2':e,
+                                     'F1':pair[1][1],
+                                     'F2':pair[0][1],
                                      'mf1':d1[2],
                                      'mf2':d1[2]+q,
                                      'J1':1.0/2.0,
@@ -138,8 +137,8 @@ def decoherence(parameter):
                             coef2 = {'q':q,
                                      'L1':0,
                                      'L2':1,
-                                     'F1':g,
-                                     'F2':e,
+                                     'F1':pair[1][1],
+                                     'F2':pair[0][1],
                                      'mf1':d2[2],
                                      'mf2':d2[2]+q,
                                      'J1':1.0/2.0,
@@ -147,7 +146,8 @@ def decoherence(parameter):
                                      'I':7.0/2.0}
                             tmp = Gamma*cs.cg_coef(**coef1)*cs.cg_coef(**coef2)
                             if tmp != 0.0:
-                                parameter['decoherence_matrix'][i][j].append([lfm2index(1.0,e,d1[2]+q),lfm2index(1.0,e,d2[2]+q),tmp])
+                                print 'added\n'
+                                parameter['decoherence_matrix'][i][j].append([lfm2index(pair[0][0],pair[0][1],d1[2]+q),lfm2index(pair[0][0],pair[0][1],d2[2]+q),tmp])
     return parameter
 
 if __name__ == '__main__':
