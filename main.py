@@ -54,6 +54,30 @@ def plot_plt_d1(n):
     plt.savefig("%s.png"%(file_out) )
     plt.show()
 
+def plot_plt_d2(n):
+    line = count_line()
+    f = open(file_out,'r')
+    data = np.zeros([n+1,line])
+    data_sum = np.zeros([7,line])    
+    for aline in enumerate(f):
+        data[:,aline[0]] = map(float,aline[1].split())
+    f.close()
+    for i in range(line):
+        data_sum[0,i] = data[0,i]
+        data_sum[1,i] = sum(data[1:12,i])
+        data_sum[2,i] = sum(data[12:21,i])
+        data_sum[3,i] = sum(data[21:28,i])
+        data_sum[4,i] = sum(data[28:33,i])
+        data_sum[5,i] = sum(data[33:42,i])
+        data_sum[6,i] = sum(data[42:49,i])                                
+    plt.figure()
+    plt.xlabel("frequency (Hz)")
+    for i in range(6):
+        plt.plot(data_sum[0,:],data_sum[i+1,:],label = str(i))
+    plt.legend()
+    plt.savefig("%s.png"%(file_out) )
+    plt.show()    
+
 def plot_gnuplot(n):
     """
     Plot using gnuplot. 
@@ -90,5 +114,5 @@ if __name__ ==  '__main__':
     parameter['sweep_profile'].append(file_out)
     system.sweep(*parameter['sweep_profile'])# can parameter add after unpack array?
     # plot_gnuplot(parameter['n'])
-    plot_plt(parameter['n'])
+    plot_plt_d2(parameter['n'])
 
