@@ -126,20 +126,20 @@ if __name__ == "__main__":
     a=Atom()
     for q in (-1,0,1):
         print "q=%i" %q
-        for f in (3,):
+        for f in (4,3,2):
             ans = []
             print "f=%i"%f
-            for m in range(-4,5):
+            for m in range(-3,4):
                 coef1 = {'q':q,
                  'L1':0,
                  'L2':1,
-                 'F1':4,
+                 'F1':3,
                  'F2':f,
                  'mf1':m,
                  'mf2':m+q,
                  'J1':1.0/2.0,
-                 'J2':1.0/2.0,
+                 'J2':3.0/2.0,
                  'I':7.0/2.0}
-                ans.append(a.dipole_element(**coef1)/2.7020e-29)
+                ans.append(a.dipole_element(**coef1)/3.8014e-29)
             print "%s \n" %ans
         print "\n"

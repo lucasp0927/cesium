@@ -119,9 +119,9 @@ def decoherence(parameter):
             for j in range(i,n):
                 d1 = index2lfm(i)
                 d2 = index2lfm(j)
-                if d1[0:2] == pair[0] and d2[0:2] == pair[0]:
-                    parameter['decoherence_matrix'][i][j].append([i,j,-1.0*Gamma])
-                elif d1[0:2] == pair[0] and d2[0:2] == pair[1]:
+                if d1[0:2] == pair[0] and d2[0:2] == pair[0] and i != j:
+                     parameter['decoherence_matrix'][i][j].append([i,j,-1.0*Gamma])
+                if d1[0:2] == pair[0] and d2[0:2] == pair[1]:
                     parameter['decoherence_matrix'][i][j].append([i,j,-1.0*Gamma/2.0])
                 elif d1[0:2] == pair[1] and d2[0:2] == pair[0]:
                     parameter['decoherence_matrix'][i][j].append([i,j,-1.0*Gamma/2.0])
@@ -151,7 +151,11 @@ def decoherence(parameter):
                                      'I':7.0/2.0}
                             tmp = Gamma*cs.cg_coef(**coef1)*cs.cg_coef(**coef2)
                             if tmp != 0.0:
-                                parameter['decoherence_matrix'][i][j].append([lfm2index(pair[0][0],pair[0][1],d1[2]+q),lfm2index(pair[0][0],pair[0][1],d2[2]+q),tmp])
+                                ii = lfm2index(pair[0][0],pair[0][1],d1[2]+q)
+                                jj = lfm2index(pair[0][0],pair[0][1],d2[2]+q)
+                                parameter['decoherence_matrix'][i][j].append([ii,jj,tmp])
+                                if ii == jj:
+                                    parameter['decoherence_matrix'][int(ii)][int(jj)].append([ii,jj,-1*tmp])                                
     return parameter
 
 if __name__ == '__main__':
