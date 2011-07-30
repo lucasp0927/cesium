@@ -5,6 +5,7 @@ import numpy as np
 import string
 from atom import Atom
 from math import pow
+from parameter_common import *
 
 # D1 line Energy level diagram
 #    _   F=4 9 levels -
@@ -67,7 +68,6 @@ def lfm2index(l,f,m):
         index += 9.0
     index += m+f
     return index
-
 def dipole(parameter):
     n=parameter['n']
     parameter['dipole'] = [[0 for i in range(n)] for j in range(n)]
