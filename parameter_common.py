@@ -19,6 +19,12 @@ class Parameter(object):
         self.parameter = parameter
         self.omega_list = omega_list
         self.filename = filename
+        n = 0
+        for i in l1f:
+            n += 2*i + 1
+        for i in l0f:
+            n += 2*i + 1
+        self.parameter['n'] = n
         
     def level_group(self):
         level_group = []
@@ -209,7 +215,6 @@ if __name__ == '__main__':
                      (G+A+C,G+A+B,G+A-D,G+A-E,G+F,0),
                      {'nu': [A-F,A+G],
                       'e_amp': [100, 100],
-                      'n': 48,
                       'sweep_profile':[0,-1E10,1E10,400]
                       },
                      'setting/d2')
