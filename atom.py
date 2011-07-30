@@ -120,32 +120,26 @@ class Atom():
         return (cg*fer*er if (L1 != L2) else 0) #this is the formula 34 on D line data
 
     def cg_coef (self,q,L1,L2,F1,F2,mf1,mf2,J1,J2,I):
-        return (math.pow(-1,F2-1+mf1)*math.sqrt(2.0*F1+1.0)*self.threej(F2,1.0,F1,mf2,q,-mf1) if (L1 != L2) else 0)
+        return (math.pow(-1,F2-1+mf1)*math.sqrt(2.0*F1+1.0)*self.threej(F2,1.0,F1,mf2,-q,-mf1) if (L1 != L2) else 0)
 
 if __name__ == "__main__":
     a=Atom()
-    coef1 = {'q':0,
-             'L1':0,
-             'L2':1,
-             'F1':3,
-             'F2':4,
-             'mf1':-3,
-             'mf2':-3,
-             'J1':1.0/2.0,
-             'J2':3.0/2.0,
-             'I':7.0/2.0}
-    coef2 = {'q':0,
-             'L1':1,
-             'L2':0,
-             'F1':4,
-             'F2':3,
-             'mf1':-3,
-             'mf2':-3,
-             'J1':3.0/2.0,
-             'J2':1.0/2.0,
-             'I':7.0/2.0}
-
-#    # from 1 to 2
-    # is revers direction correct
-    print a.dipole_element(**coef1)/3.8014e-29 #unpack
-    print a.cg_coef(**coef2) #unpack
+    for q in (-1,0,1):
+        print "q=%i" %q
+        for f in (3,):
+            ans = []
+            print "f=%i"%f
+            for m in range(-4,5):
+                coef1 = {'q':q,
+                 'L1':0,
+                 'L2':1,
+                 'F1':4,
+                 'F2':f,
+                 'mf1':m,
+                 'mf2':m+q,
+                 'J1':1.0/2.0,
+                 'J2':1.0/2.0,
+                 'I':7.0/2.0}
+                ans.append(a.dipole_element(**coef1)/2.7020e-29)
+            print "%s \n" %ans
+        print "\n"

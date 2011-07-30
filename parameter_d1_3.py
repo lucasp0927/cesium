@@ -2,6 +2,7 @@
 from __future__ import division
 import sys
 import numpy as np
+import string
 from atom import Atom
 from math import pow
 
@@ -125,9 +126,9 @@ def decoherence(parameter):
     #                            'I':7.0/2.0}
     #                   tmp = Gamma * pow(cs.cg_coef(**coef1),2)
     #                   parameter['decoherence_matrix'][i][j].append([lfm2index(pair[0][0],pair[0][1],d1[2]+q),lfm2index(pair[0][0],pair[0][1],d2[2]+q),tmp])                  
-    egpair=(((1,3),(0,4)),((1,3),(0,3)))
+    #egpair=(((1,3),(0,4)),((1,3),(0,3)))
+    egpair=(((1,3),(0,4)),)
     for pair in egpair:
-        print pair
         for i in range(n):
             for j in range(i,n):
                 d1 = index2lfm(i)
@@ -140,7 +141,8 @@ def decoherence(parameter):
                     parameter['decoherence_matrix'][i][j].append([i,j,-1.0*Gamma/2.0])
                 elif d1[0:2] == pair[1] and d2[0:2] == pair[1]:
                     for q in (-1.0,0.0,1.0):
-                        if (d1[2]+q <= d1[1] and d1[2]+q >= -1*d1[1]) and (d2[2]+q <= d2[1] and d2[2]+q >= -1*d2[1]):
+                        f1 = pair[0][1]
+                        if (d1[2]+q <= f1 and d1[2]+q >= -1*f1) and (d2[2]+q <= f1 and d2[2]+q >= -1*f1):
                             coef1 = {'q':q,
                                      'L1':0,
                                      'L2':1,
@@ -163,13 +165,12 @@ def decoherence(parameter):
                                      'I':7.0/2.0}
                             tmp = Gamma*cs.cg_coef(**coef1)*cs.cg_coef(**coef2)
                             if tmp != 0.0:
-                                print 'added\n'
                                 parameter['decoherence_matrix'][i][j].append([lfm2index(pair[0][0],pair[0][1],d1[2]+q),lfm2index(pair[0][0],pair[0][1],d2[2]+q),tmp])
     return parameter
 
 if __name__ == '__main__':
     filename =  sys.argv[1]
-    parameter={'nu': [F+E,F-D],
+    parameter={'nu': [F-D,F+E],
                'level_group': [[0,1,2,3,4,5,6],[7,8,9,10,11,12,13,14,15],[16,17,18,19,20,21,22]],
                'e_amp': [100, 100],
                'n': 23,
@@ -178,6 +179,19 @@ if __name__ == '__main__':
     omega(parameter)
     dipole(parameter)
     decoherence(parameter)
+    print "      L   F   M|"
+    print "----------------------------------------"
+    sum = 0.0
+    psum = 0.0
+    for i in range(parameter['n']):
+        iter = parameter['decoherence_matrix'][i][i]
+        for j in iter:
+            sum += j[2]
+            psum += j[2]
+        print "{:3d}:{:3d} {:3d} {:3d}| {:<100} |Sum is: {:>20f}".format(i,index2lfm(i)[0],index2lfm(i)[1],index2lfm(i)[2],iter,psum)
+        psum = 0.0        
+
+    print "the sum is %f" %sum
     txtf = open(filename+'.txt','w')
     txtf.write(str(parameter))
     txtf.close()
