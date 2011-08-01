@@ -33,7 +33,7 @@ def plot_plt(n):
     plt.show()
 
 def plot_plt_d1(n):
-    
+
     option = {1:'l=1,f=4',
               2:'l=1,f=3',
               3:'l=0,f=4',
@@ -43,7 +43,7 @@ def plot_plt_d1(n):
     line = count_line()
     f = open(file_out,'r')
     data = np.zeros([n+1,line])
-    data_sum = np.zeros([5,line])    
+    data_sum = np.zeros([5,line])
     for aline in enumerate(f):
         data[:,aline[0]] = map(float,aline[1].split())
     f.close()
@@ -52,11 +52,11 @@ def plot_plt_d1(n):
         data_sum[1,i] = sum(data[1:10,i])
         data_sum[2,i] = sum(data[10:17,i])
         data_sum[3,i] = sum(data[17:26,i])
-        data_sum[4,i] = sum(data[26:33,i])                        
+        data_sum[4,i] = sum(data[26:33,i])
     plt.figure()
     plt.xlabel("frequency (Hz)")
     for i in range(4):
-        plt.plot(data_sum[0,:],data_sum[i+1,:],label = option[i+1])                    
+        plt.plot(data_sum[0,:],data_sum[i+1,:],label = option[i+1])
     plt.legend()
     plt.savefig("%s.png"%(file_out) )
     plt.show()
@@ -66,14 +66,14 @@ def plot_plt_d2(n):
     option = {1:'l=1,f=5',
               2:'l=1,f=4',
               3:'l=1,f=3',
-              4:'l=1,f=2',              
+              4:'l=1,f=2',
               5:'l=0,f=4',
               6:'l=0,f=3'
-        }    
+        }
     line = count_line()
     f = open(file_out,'r')
     data = np.zeros([n+1,line])
-    data_sum = np.zeros([7,line])    
+    data_sum = np.zeros([7,line])
     for aline in enumerate(f):
         data[:,aline[0]] = map(float,aline[1].split())
     f.close()
@@ -84,18 +84,18 @@ def plot_plt_d2(n):
         data_sum[3,i] = sum(data[21:28,i])
         data_sum[4,i] = sum(data[28:33,i])
         data_sum[5,i] = sum(data[33:42,i])
-        data_sum[6,i] = sum(data[42:49,i])                                
+        data_sum[6,i] = sum(data[42:49,i])
     plt.figure()
     plt.xlabel("frequency (Hz)")
     for i in range(6):
-        plt.plot(data_sum[0,:],data_sum[i+1,:],label = option[i+1])                            
+        plt.plot(data_sum[0,:],data_sum[i+1,:],label = option[i+1])
     plt.legend()
     plt.savefig("%s.png"%(file_out) )
-    plt.show()    
+    plt.show()
 
 def plot_gnuplot(n):
     """
-    Plot using gnuplot. 
+    Plot using gnuplot.
     """
     f=open('./tmp.gp','w')
     f.write('set terminal png\nset output \'%s.png\'\n'%(file_out) )
@@ -111,7 +111,7 @@ def plot_gnuplot(n):
 if __name__ ==  '__main__':
     file_in = sys.argv[1]
     file_out = sys.argv[2]
-    
+
     # dictf = open('three_level','w')
     # pickle.dump(parameter,dictf)
     # dictf.close()
@@ -120,7 +120,7 @@ if __name__ ==  '__main__':
     parameter = eval(dictf.read())
 #    parameter = pickle.load(dictf)
     dictf.close()
-    
+
     # txtf = open(file_in+'.txt','w')
     # txtf.write(str(parameter))
     # txtf.close()
@@ -128,6 +128,4 @@ if __name__ ==  '__main__':
     system = System(parameter)
     parameter['sweep_profile'].append(file_out)
     system.sweep(*parameter['sweep_profile'])# can parameter add after unpack array?
-    # plot_gnuplot(parameter['n'])
-    plot_plt_d2(parameter['n'])
-
+    plot_plt(parameter['n'])
