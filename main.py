@@ -33,6 +33,21 @@ def plot_plt(n):
     plt.show()
 
 def plot_plt_d1(n):
+    
+    def l1f4():
+        plt.plot(data_sum[0,:],data_sum[i+1,:],label = 'l=1,f=4')
+    def l1f3():
+        plt.plot(data_sum[0,:],data_sum[i+1,:],label = 'l=1,f=3')
+    def l0f4():
+        plt.plot(data_sum[0,:],data_sum[i+1,:],label = 'l=0,f=4')
+    def l0f3():
+        plt.plot(data_sum[0,:],data_sum[i+1,:],label = 'l=0,f=3')                    
+    option = {1:l1f4,
+              2:l1f3,
+              3:l0f4,
+              4:l0f3
+        }
+
     line = count_line()
     f = open(file_out,'r')
     data = np.zeros([n+1,line])
@@ -49,12 +64,32 @@ def plot_plt_d1(n):
     plt.figure()
     plt.xlabel("frequency (Hz)")
     for i in range(4):
-        plt.plot(data_sum[0,:],data_sum[i+1,:],label = str(i))
+        option[i+1]()
     plt.legend()
     plt.savefig("%s.png"%(file_out) )
     plt.show()
 
 def plot_plt_d2(n):
+
+    def l1f5():
+        plt.plot(data_sum[0,:],data_sum[i+1,:],label = 'l=1,f=5')
+    def l1f4():
+        plt.plot(data_sum[0,:],data_sum[i+1,:],label = 'l=1,f=4')
+    def l1f3():
+        plt.plot(data_sum[0,:],data_sum[i+1,:],label = 'l=1,f=3')
+    def l1f2():
+        plt.plot(data_sum[0,:],data_sum[i+1,:],label = 'l=1,f=2')
+    def l0f4():
+        plt.plot(data_sum[0,:],data_sum[i+1,:],label = 'l=0,f=4')
+    def l0f3():
+        plt.plot(data_sum[0,:],data_sum[i+1,:],label = 'l=0,f=3')                    
+    option = {1:l1f5,
+              2:l1f4,
+              3:l1f3,
+              4:l1f2,              
+              5:l0f4,
+              6:l0f3
+        }    
     line = count_line()
     f = open(file_out,'r')
     data = np.zeros([n+1,line])
@@ -73,7 +108,7 @@ def plot_plt_d2(n):
     plt.figure()
     plt.xlabel("frequency (Hz)")
     for i in range(6):
-        plt.plot(data_sum[0,:],data_sum[i+1,:],label = str(i))
+        option[i+1]()
     plt.legend()
     plt.savefig("%s.png"%(file_out) )
     plt.show()    
