@@ -2,6 +2,8 @@
 from __future__ import division
 import numpy as np
 from atom import Atom
+import math
+
 class Parameter(object):
     """
     """
@@ -143,8 +145,8 @@ class Parameter(object):
                 for j in range(i,n):
                     d1 = self.index2lfm(i)
                     d2 = self.index2lfm(j)
-                    if d1[0:2] == pair[0] and d2[0:2] == pair[0]:# and i != j:
-                         self.parameter['decoherence_matrix'][i][j].append([i,j,-1.0*Gamma])
+                    if d1[0:2] == pair[0] and d2[0:2] == pair[0] and i != j:
+                          self.parameter['decoherence_matrix'][i][j].append([i,j,-1.0*Gamma])
                     if d1[0:2] == pair[0] and d2[0:2] == pair[1]:
                         self.parameter['decoherence_matrix'][i][j].append([i,j,-1.0*Gamma/2.0])
                     elif d1[0:2] == pair[1] and d2[0:2] == pair[0]:
@@ -173,13 +175,16 @@ class Parameter(object):
                                          'J1':1.0/2.0,
                                          'J2':j2,
                                          'I':7.0/2.0}
-                                tmp = Gamma*cs.cg_coef(**coef1)*cs.cg_coef(**coef2)
+                                #this correction coefficient (see equation 54) should be written to atom.py later
+                                rev = (-1)**(pair[0][1]-pair[1][1]+q)*math.sqrt((2*pair[0][1]+1)/(2*pair[1][1]+1))
+                                rev = rev**2
+                                tmp = Gamma*cs.cg_coef(**coef1)*cs.cg_coef(**coef2)*rev
                                 if tmp != 0.0:
                                     ii = self.lfm2index(pair[0][0],pair[0][1],d1[2]+q)
                                     jj = self.lfm2index(pair[0][0],pair[0][1],d2[2]+q)
                                     self.parameter['decoherence_matrix'][i][j].append([ii,jj,tmp])
-                                    # if ii == jj:
-                                    #     self.parameter['decoherence_matrix'][int(ii)][int(jj)].append([ii,jj,-1*tmp])   
+                                    if ii == jj:
+                                        self.parameter['decoherence_matrix'][int(ii)][int(jj)].append([ii,jj,-1*tmp])   
                                         
     def write(self):
         self.level_group()
@@ -216,7 +221,7 @@ if __name__ == '__main__':
                      (G+A+C,G+A+B,G+A-D,G+A-E,G+F,0),
                      {'nu': [A-F,A+G],
                       'e_amp': [100, 100],
-                      'sweep_profile':[0,-1E10,1E10,400]
+                      'sweep_profile':[0,-1E10,1E10,4000]
                       },
                      'setting/d2')
     para.write()
