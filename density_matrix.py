@@ -2,14 +2,17 @@
 from __future__ import division
 from Expo import Expo
 from Expolist import Expolist
+from sweep_thread import Sweep_Thread
 import numpy as np
 import sys
 from progress_bar import ProgressBar
-import threading
+import time #record calculate time
 
+NOTHING = object()
 class System:
     """
     """
+
     def hamiltonian(self,i,j):
         """
         produce hamiltanian matrix
@@ -62,20 +65,23 @@ class System:
                 return k
         else:
             raise IOError('no level found in group')
-
-    def interaction(self,i,j):
+    
+    def interaction(self,i,j,nu = NOTHING):
         """
         Return the interaction frequency of level i and j
         """
+        if nu is NOTHING:
+            nu = self.nu
+        
         if self.same_group(i,j):
             return 0
         else:
             if self.group_number(i) == 0:
-                return self.nu[self.group_number(j)-1]
+                return nu[self.group_number(j)-1]
             elif self.group_number(j) == 0:
-                return -1*self.nu[self.group_number(i)-1]
+                return -1*nu[self.group_number(i)-1]
             else:
-                return self.nu[self.group_number(j)-1]-self.nu[self.group_number(i)-1]
+                return nu[self.group_number(j)-1]-nu[self.group_number(i)-1]
             
     def decoherence(self,system):
         """
@@ -89,14 +95,16 @@ class System:
                     system[int(self.index(i,j))][t]+=tmp
         return system
 
-    def add_freq(self,system):
+    def add_freq(self,system,nu = NOTHING):
         """
         Add frequency dependent terms to system matrix.
         """
+        if nu is NOTHING:
+            nu = self.nu
         for i in range(self.n):
             for j in range(i+1,self.n):
-                system[self.index(i,j)][self.index(i,j)+1] -= self.interaction(i,j)
-                system[self.index(i,j) + 1][self.index(i,j)] += self.interaction(i,j)
+                system[self.index(i,j)][self.index(i,j)+1] -= self.interaction(i,j,nu)
+                system[self.index(i,j) + 1][self.index(i,j)] += self.interaction(i,j,nu)
         return system
 
     def sweep(self,sweep_n,start,end,points,filename='./test.txt'):
@@ -104,38 +112,31 @@ class System:
         nu[sweep_n] is sweeped.
         Sweep the frequency and output the result to filename.
         """
+        threads = 8
+        points = points//threads*threads # points per thread
         ##This are codes for progress bar
-        counter = 0 # progress bar's counter
-        prog = ProgressBar(counter, points, 50, mode='fixed', char='#')
+        prog = ProgressBar(0, points, 50, mode='fixed', char='#')
         ##the linear algebra start here
         a = np.zeros(self.N)
         a[self.N-1] = 1 #1 because rho_11+rho_22 ... =1
         a = np.matrix(a)
         a = a.T
         self.result = [[0.0 for i in range(self.n+1)]for j in range(points)]#this is the matrix which store the result, it will be saved to file later.
-        threads = 8
         job = self.allocate_job(start,end,points,threads)
-        for freq in np.linspace(start,end,points):
-            ## progress bar 
-            counter +=1
-            prog.increment_amount()
-            print prog, '\r',
-            sys.stdout.flush()
-            ## copy system
-            system_sweep = self.system.copy()
-            """
-            keep self.system independant of frequency,
-            only do frequency dependent operation on system_sweep
-            """
-            self.nu[sweep_n]=self.nu2[sweep_n]+freq
-            system_sweep = self.add_freq(system_sweep)#add freq dependent terms
-            system_sweep=np.matrix(system_sweep)
-            solution = np.linalg.solve(system_sweep,a)#solve linear algebra system
-            self.result[counter-1][0] = freq
-            # save all diagonal element to matrix
-            for i in range(self.n):
-                self.result[counter-1][i+1] = solution[self.index(i,i),0]
-            self.sweep_save_file(filename,points)
+        thread_list = []
+        for x in range(threads):
+            thread_list.append(Sweep_Thread(self.result,job[x],prog,self.system,self.nu2,a,self.add_freq,self.index,sweep_n,self.n))
+
+        tStart = time.time()            
+        for t in thread_list:
+            t.start()
+
+        for t in thread_list:
+            t.join()
+        tStop = time.time()
+        print"spend",(tStop - tStart),"second"
+            
+        self.sweep_save_file(filename,points)
 
     def allocate_job(self,start,end,points,threads):
         points = points//threads*threads # points per thread
@@ -243,6 +244,6 @@ class System:
         self.system = self.to_ri(self.system) 
         self.system = self.normalize(self.system) #change last row of system matrix to normalize condition.
         self.system = np.array(self.system) #convert system to np.array, so that it can be solved using scipy.
-
+        
 if __name__ ==  '__main__':
     pass
