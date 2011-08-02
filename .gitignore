@@ -8,4 +8,5 @@
 .#*
 .ropeproject
 .zcache
-
+test*
+/setting/*

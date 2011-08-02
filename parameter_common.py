@@ -101,25 +101,25 @@ class Parameter(object):
                 d1 = self.index2lfm(i)
                 d2 = self.index2lfm(j)
                 if d1[0] == 0 and d2[0] == 1:
-                    coef = {'q':0,
+                    coef = {'q':-1,
                              'L1':0,
                              'L2':1,
                              'F1':d1[1],
                              'F2':d2[1],
                              'mf1':d1[2],
-                             'mf2':d2[2],
+                             'mf2':d2[2]-1,
                              'J1':1.0/2.0,
                              'J2':j2,
                              'I':7.0/2.0}
                     self.parameter['dipole'][i][j] = cs.dipole_element(**coef)
                 elif d2[0] == 0 and d1[0] == 1:
-                    coef = {'q':0,
+                    coef = {'q':-1,
                              'L1':0,
                              'L2':1,
                              'F1':d2[1],
                              'F2':d1[1],
                              'mf1':d2[2],
-                             'mf2':d1[2],
+                             'mf2':d1[2]-1,
                              'J1':1.0/2.0,
                              'J2':j2,
                              'I':7.0/2.0}
