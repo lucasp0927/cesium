@@ -5,6 +5,7 @@ from Expolist import Expolist
 import numpy as np
 import sys
 from progress_bar import ProgressBar
+import threading
 
 class System:
     """
@@ -105,15 +106,13 @@ class System:
         """
         ##This are codes for progress bar
         counter = 0 # progress bar's counter
-
         prog = ProgressBar(counter, points, 50, mode='fixed', char='#')
-
         ##the linear algebra start here
         a = np.zeros(self.N)
         a[self.N-1] = 1 #1 because rho_11+rho_22 ... =1
         a = np.matrix(a)
         a = a.T
-        result = [[0.0 for i in range(self.n+1)]for j in range(points)]#this is the matrix which store the result, it will be saved to file later.
+        self.result = [[0.0 for i in range(self.n+1)]for j in range(points)]#this is the matrix which store the result, it will be saved to file later.
         for freq in np.linspace(start,end,points):
             ## progress bar 
             counter +=1
@@ -130,16 +129,18 @@ class System:
             system_sweep = self.add_freq(system_sweep)#add freq dependent terms
             system_sweep=np.matrix(system_sweep)
             solution = np.linalg.solve(system_sweep,a)#solve linear algebra system
-            result[counter-1][0] = freq
+            self.result[counter-1][0] = freq
             # save all diagonal element to matrix
             for i in range(self.n):
-                result[counter-1][i+1] = solution[self.index(i,i),0]
+                self.result[counter-1][i+1] = solution[self.index(i,i),0]
+            self.sweep_save_file(filename,points)
 
+    def sweep_save_file(self,filename,points):
         f=open(filename,'w')# w option will overwrite file if file exist            
         for i in range(points):
-            tmp_str = '%.0f'%result[i][0]
+            tmp_str = '%.0f'%self.result[i][0]
             for j in range(self.n):
-                tmp_str += ' %.10f'%result[i][j+1]
+                tmp_str += ' %.10f'%self.result[i][j+1]
             tmp_str += '\n'
             f.write(tmp_str)
         f.close()
@@ -217,6 +218,7 @@ class System:
         self.decoherence_matrix = parameter['decoherence_matrix']
 
         self.N = self.n**2 #number of independent density matrix variable
+        self.result = []
         print '  initializing system matrix...'        
         self.system = [[Expolist() for i in range(self.N)] for j in range(self.N)]
         print '  initializing hamiltonian...'
