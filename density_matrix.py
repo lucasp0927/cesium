@@ -103,33 +103,43 @@ class System:
         nu[sweep_n] is sweeped.
         Sweep the frequency and output the result to filename.
         """
+        ##This are codes for progress bar
         counter = 0 # progress bar's counter
-        f=open(filename,'w')# w option will overwrite file if file exist
+
         prog = ProgressBar(counter, points, 50, mode='fixed', char='#')
 
+        ##the linear algebra start here
         a = np.zeros(self.N)
         a[self.N-1] = 1 #1 because rho_11+rho_22 ... =1
         a = np.matrix(a)
         a = a.T
+        result = [[0.0 for i in range(self.n+1)]for j in range(points)]#this is the matrix which store the result, it will be saved to file later.
         for freq in np.linspace(start,end,points):
+            ## progress bar 
             counter +=1
             prog.increment_amount()
             print prog, '\r',
             sys.stdout.flush()
+            ## copy system
             system_sweep = self.system.copy()
             """
             keep self.system independant of frequency,
             only do frequency dependent operation on system_sweep
             """
             self.nu[sweep_n]=self.nu2[sweep_n]+freq
-            system_sweep = self.add_freq(system_sweep)
+            system_sweep = self.add_freq(system_sweep)#add freq dependent terms
             system_sweep=np.matrix(system_sweep)
-            #system_sweep = self.normalize(system_sweep)
-            solution = np.linalg.solve(system_sweep,a)
-            # print all diagonal element to file
-            tmp_str = '%.0f'%freq
+            solution = np.linalg.solve(system_sweep,a)#solve linear algebra system
+            result[counter-1][0] = freq
+            # save all diagonal element to matrix
             for i in range(self.n):
-                tmp_str += ' %.8f'%solution[self.index(i,i),0]
+                result[counter-1][i+1] = solution[self.index(i,i),0]
+
+        f=open(filename,'w')# w option will overwrite file if file exist            
+        for i in range(points):
+            tmp_str = '%.0f'%result[i][0]
+            for j in range(self.n):
+                tmp_str += ' %.10f'%result[i][j+1]
             tmp_str += '\n'
             f.write(tmp_str)
         f.close()
@@ -207,12 +217,16 @@ class System:
         self.decoherence_matrix = parameter['decoherence_matrix']
 
         self.N = self.n**2 #number of independent density matrix variable
+        print '  initializing system matrix...'        
         self.system = [[Expolist() for i in range(self.N)] for j in range(self.N)]
+        print '  initializing hamiltonian...'
         self.hamilton = np.array([[self.hamiltonian(i,j) for j in range(self.n)]for i in range(self.n)])
         #Start calculate
         print 'von_neumann...'
         self.system = self.von_neumann(self.system) #(H rho-rho H)/i
+        print 'decoherence...'
         self.system = self.decoherence(self.system) #Add decoherence terms
+        print 'to_ri'        
         self.system = self.to_ri(self.system) 
         self.system = self.normalize(self.system) #change last row of system matrix to normalize condition.
         self.system = np.array(self.system) #convert system to np.array, so that it can be solved using scipy.
