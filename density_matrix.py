@@ -113,6 +113,8 @@ class System:
         a = np.matrix(a)
         a = a.T
         self.result = [[0.0 for i in range(self.n+1)]for j in range(points)]#this is the matrix which store the result, it will be saved to file later.
+        threads = 8
+        job = self.allocate_job(start,end,points,threads)
         for freq in np.linspace(start,end,points):
             ## progress bar 
             counter +=1
@@ -135,6 +137,15 @@ class System:
                 self.result[counter-1][i+1] = solution[self.index(i,i),0]
             self.sweep_save_file(filename,points)
 
+    def allocate_job(self,start,end,points,threads):
+        points = points//threads*threads # points per thread
+        ppt = points//threads #points per threads
+        space = zip(range(points),np.linspace(start,end,points))
+        job = []
+        for i in range(threads):
+            job.append(space[i*ppt:(i+1)*ppt])
+        return job
+    
     def sweep_save_file(self,filename,points):
         f=open(filename,'w')# w option will overwrite file if file exist            
         for i in range(points):
