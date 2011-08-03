@@ -3,6 +3,8 @@ from __future__ import division
 from Expo import Expo
 from Expolist import Expolist
 from sweep_thread import Sweep_Thread
+from sweep_multi import *
+import multiprocessing
 import numpy as np
 import sys
 from progress_bar import ProgressBar
@@ -107,7 +109,7 @@ class System:
                 system[self.index(i,j) + 1][self.index(i,j)] += self.interaction(i,j,nu)
         return system
 
-    def sweep(self,sweep_n,start,end,points,filename='./test.txt'):
+    def sweep_threading(self,sweep_n,start,end,points,filename='./test.txt'):
         """
         nu[sweep_n] is sweeped.
         Sweep the frequency and output the result to filename.
@@ -141,6 +143,59 @@ class System:
 
         for t in thread_list:
             t.join()
+        tStop = time.time()
+        print"spend",(tStop - tStart),"second"
+            
+        self.sweep_save_file(filename,points)
+
+    def sweep_multiprocessing(self,sweep_n,start,end,points,filename='./test.txt'):
+        """
+        nu[sweep_n] is sweeped.
+        Sweep the frequency and output the result to filename.
+        """
+        ###############################
+        ##multiprocessing preparation
+        ##############################
+        core = 10
+        points = points//core*core # points per thread
+        self.result = [[0.0 for i in range(self.n+1)]for j in range(points)]#this is the matrix which store the result, it will be saved to file later.
+        job = self.allocate_job(start,end,points,core)
+
+        
+        ################################
+        ##This are codes for progress bar
+        ###############################
+        prog = ProgressBar(0, points, 50, mode='fixed', char='#')
+        ##the linear algebra start here
+        a = np.zeros(self.N)
+        a[self.N-1] = 1 #1 because rho_11+rho_22 ... =1
+        a = np.matrix(a)
+        a = a.T
+
+        done_queue = multiprocessing.Queue()
+        process_list = []
+        for x in range(core):
+            process_list.append(multiprocessing.Process(target = sweep_mp,args = (job[x],self.system,self.nu2,a,self.add_freq,self.index,sweep_n,self.n,done_queue)))
+
+        tStart = time.time()
+        print 'start'
+        for p in process_list:
+            p.start()
+
+        stop_num = 0
+        while stop_num != core:
+            a = done_queue.get()
+            if a == 'STOP':
+                stop_num += 1
+            else:
+                self.result[a[0]] = a[1]
+        for p in process_list:
+            p.join()
+            print "%s.exitcode = %s" %(p.name, p.exitcode)
+
+        # for i in range(core):
+        #     a = done_queue.get()
+        #     self.result[a[0][0]:a[0][1]+1] = a[1]
         tStop = time.time()
         print"spend",(tStop - tStart),"second"
             
@@ -252,6 +307,8 @@ class System:
         self.system = self.to_ri(self.system) 
         self.system = self.normalize(self.system) #change last row of system matrix to normalize condition.
         self.system = np.array(self.system) #convert system to np.array, so that it can be solved using scipy.
+        #choose threading or multiprocessing here
+        self.sweep = self.sweep_multiprocessing
         
 if __name__ ==  '__main__':
     pass
