@@ -189,6 +189,11 @@ class System:
                 stop_num += 1
             else:
                 self.result[a[0]] = a[1]
+                prog.increment_amount()
+                print prog, '\r',
+                sys.stdout.flush()
+
+        print '\n'
         for p in process_list:
             p.join()
             print "%s.exitcode = %s" %(p.name, p.exitcode)
