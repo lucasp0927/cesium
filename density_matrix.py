@@ -112,17 +112,25 @@ class System:
         nu[sweep_n] is sweeped.
         Sweep the frequency and output the result to filename.
         """
+        ###############################
+        ##multithread preparation
+        ##############################
         threads = 8
         points = points//threads*threads # points per thread
+        self.result = [[0.0 for i in range(self.n+1)]for j in range(points)]#this is the matrix which store the result, it will be saved to file later.
+        job = self.allocate_job(start,end,points,threads)
+
+        
+        ################################
         ##This are codes for progress bar
+        ###############################
         prog = ProgressBar(0, points, 50, mode='fixed', char='#')
         ##the linear algebra start here
         a = np.zeros(self.N)
         a[self.N-1] = 1 #1 because rho_11+rho_22 ... =1
         a = np.matrix(a)
         a = a.T
-        self.result = [[0.0 for i in range(self.n+1)]for j in range(points)]#this is the matrix which store the result, it will be saved to file later.
-        job = self.allocate_job(start,end,points,threads)
+
         thread_list = []
         for x in range(threads):
             thread_list.append(Sweep_Thread(self.result,job[x],prog,self.system,self.nu2,a,self.add_freq,self.index,sweep_n,self.n))
