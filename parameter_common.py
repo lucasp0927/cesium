@@ -112,44 +112,49 @@ class Parameter(object):
                     break
         return index
     
-    def dipole(self,q = 1):
-        if self.d1 == 1:
-            j2 = 1.0/2.0
-        else:
-            j2 = 3.0/2.0
-        n=self.parameter['n']
-        self.parameter['dipole'] = [[0 for i in range(n)] for j in range(n)]
-        cs = Atom()
-        for i in range(n):
-            for j in range(n):
-                d1 = self.index2lfm(i)
-                d2 = self.index2lfm(j)
-                if d1[0] == 0 and d2[0] == 1:
-                    coef = {'q':q,
-                             'L1':0,
-                             'L2':1,
-                             'F1':d1[1],
-                             'F2':d2[1],
-                             'mf1':d1[2],
-                             'mf2':d2[2]+q,
-                             'J1':1.0/2.0,
-                             'J2':j2,
-                             'I':7.0/2.0}
-                    self.parameter['dipole'][i][j] = cs.dipole_element(**coef)
-                elif d2[0] == 0 and d1[0] == 1:
-                    coef = {'q':q,
-                             'L1':0,
-                             'L2':1,
-                             'F1':d2[1],
-                             'F2':d1[1],
-                             'mf1':d2[2],
-                             'mf2':d1[2]+q,
-                             'J1':1.0/2.0,
-                             'J2':j2,
-                             'I':7.0/2.0}
-                    self.parameter['dipole'][i][j] = cs.dipole_element(**coef)
-                else:
-                    self.parameter['dipole'][i][j] = 0.0
+    def dipole(self):
+        self.parameter['dipole'] = []
+        for k in range(len(self.parameter['e_amp'])):
+            if self.d1 == 1:
+                j2 = 1.0/2.0
+            else:
+                j2 = 3.0/2.0
+            n=self.parameter['n']
+            tmp = [[0 for i in range(n)] for j in range(n)]
+            cs = Atom()
+            for i in range(n):
+                for j in range(n):
+                    d1 = self.index2lfm(i)
+                    d2 = self.index2lfm(j)
+                    if d1[0] == 0 and d2[0] == 1:
+                        q=self.parameter['e_amp'][k][1]
+                        coef = {'q':q,
+                                 'L1':0,
+                                 'L2':1,
+                                 'F1':d1[1],
+                                 'F2':d2[1],
+                                 'mf1':d1[2],
+                                 'mf2':d2[2]+q,
+                                 'J1':1.0/2.0,
+                                 'J2':j2,
+                                 'I':7.0/2.0}
+                        tmp[i][j] = cs.dipole_element(**coef)
+                    elif d2[0] == 0 and d1[0] == 1:
+                        q=self.parameter['e_amp'][k][1]                        
+                        coef = {'q':q,
+                                 'L1':0,
+                                 'L2':1,
+                                 'F1':d2[1],
+                                 'F2':d1[1],
+                                 'mf1':d2[2],
+                                 'mf2':d1[2]+q,
+                                 'J1':1.0/2.0,
+                                 'J2':j2,
+                                 'I':7.0/2.0}
+                        tmp[i][j] = cs.dipole_element(**coef)
+                    else:
+                        tmp[i][j] = 0.0
+            self.parameter['dipole'].append(tmp)
 
     def decoherence(self):
         if self.d1 == 1:
@@ -213,7 +218,7 @@ class Parameter(object):
     def write(self):
         self.level_group()
         self.omega()
-        self.dipole(self.parameter['q'])
+        self.dipole()
         self.decoherence()
         print "      L   F   M|"
         print "----------------------------------------"

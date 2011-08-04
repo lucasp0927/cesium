@@ -26,7 +26,7 @@ class System:
             terms = []
             for k in range(len(self.e_amp)):
                 for l in range(2):
-                    mag = -1*self.dipole[i][j]*self.e_amp[k]/2.0
+                    mag = -1*self.dipole[k][i][j]*self.e_amp[k][0]/2.0
                     freq = (-1)**l*self.nu[k]
                     terms.append(Expo(mag,freq))
             return Expolist(terms)
