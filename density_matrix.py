@@ -24,7 +24,7 @@ class System:
             return Expolist([Expo(self.omega[i],0)])
         else:
             terms = []
-            for k in range(2):# two laser freq
+            for k in range(len(self.e_amp)):
                 for l in range(2):
                     mag = -1*self.dipole[i][j]*self.e_amp[k]/2.0
                     freq = (-1)**l*self.nu[k]

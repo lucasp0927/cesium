@@ -8,7 +8,7 @@ class Parameter(object):
     """
     """
     
-    def __init__(self,l1f,l0f,d1,egpair,omega_list,parameter,filename):
+    def __init__(self,l1f,l0f,B,d1,egpair,omega_list,parameter,filename):
         """
         if d1 = 1 then d1 else d2
         l1f = (5,4,3)
@@ -18,6 +18,7 @@ class Parameter(object):
         self.egpair = egpair
         self.l1f = l1f
         self.l0f = l0f
+        self.B = B
         self.parameter = parameter
         self.omega_list = omega_list
         self.filename = filename
@@ -40,12 +41,35 @@ class Parameter(object):
         self.parameter['level_group']=level_group
 
     def omega(self):
+        mub = 9.27400915e-28/1.054571628e-34
+        gs = 2.0023193043622
+        gl = 0.99999587
+        gjs = 2.00254032
+        gjp12 = 0.665900
+        gjp32 = 1.33400
+        gi = -0.00039885395
         counter = 0
+        I = 7.0/2.0
         self.parameter['omega']=[]
-        for l in (self.l1f,self.l0f):
-            for i in l:
-                for j in range(2*i+1):
-                    self.parameter['omega'].append(self.omega_list[counter])
+        for LL in enumerate((self.l1f,self.l0f)):
+            if LL[0] == 0: #p
+                L = 1
+                if self.d1 == 1: #d1
+                    gj = gjp12
+                    J = 1.0/2.0
+                elif self.d1 == 0: #d2
+                    gj = gjp32
+                    J = 3.0/2.0
+            elif LL[0] == 1: #s
+                gj = gjs
+                L=0
+                J = 1.0/2.0
+                
+            for F in LL[1]:#l
+                gf = gj * (F*(F+1) - I*(I+1) + J*(J+1)) / (2*F*(F+1)) + gi * (F*(F+1)+ I*(I+1) - J*(J+1)) / (2*F*(F+1))
+                for m in range(-F,F+1): #m
+                    print L,F,m,self.omega_list[counter] + mub * self.B * m * gf
+                    self.parameter['omega'].append(self.omega_list[counter] + mub * self.B * m * gf)
                 counter += 1
 
     def index2lfm(self,n):

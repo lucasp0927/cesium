@@ -128,4 +128,4 @@ if __name__ ==  '__main__':
     system = System(parameter)
     parameter['sweep_profile'].append(file_out)
     system.sweep(*parameter['sweep_profile'])# can parameter add after unpack array?
-    plot_plt_d2(parameter['n'])
+    plot_plt(parameter['n'])
