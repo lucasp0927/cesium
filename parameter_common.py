@@ -5,10 +5,11 @@ from atom import Atom
 import math
 import pydot
 
+
 class Parameter(object):
     """
     """
-    
+
     def __init__(self,l1f,l0f,B,d1,egpair,omega_list,parameter,filename):
         """
         if d1 = 1 then d1 else d2
@@ -27,14 +28,14 @@ class Parameter(object):
         self.l1subg = {}
         self.l0subg = {}
         self.l1subn = {}
-        self.l0subn = {}        
+        self.l0subn = {}
         n = 0
         for i in l1f:
             n += 2*i + 1
         for i in l0f:
             n += 2*i + 1
         self.parameter['n'] = n
-        
+
     def level_group(self):
         level_group = []
         l1_levels = 0
@@ -70,7 +71,7 @@ class Parameter(object):
                 gj = gjs
                 L=0
                 J = 1.0/2.0
-                
+
             for F in LL[1]:#l
                 gf = gj * (F*(F+1) - I*(I+1) + J*(J+1)) / (2*F*(F+1)) + gi * (F*(F+1)+ I*(I+1) - J*(J+1)) / (2*F*(F+1))
                 for m in range(-F,F+1): #m
@@ -117,7 +118,7 @@ class Parameter(object):
                     index += m + f
                     break
         return index
-    
+
     def dipole(self):
         self.parameter['dipole'] = []
         for k in range(len(self.parameter['e_amp'])):
@@ -146,7 +147,7 @@ class Parameter(object):
                                  'I':7.0/2.0}
                         tmp[i][j] = cs.dipole_element(**coef)
                     elif d2[0] == 0 and d1[0] == 1:
-                        q=self.parameter['e_amp'][k][1]                        
+                        q=self.parameter['e_amp'][k][1]
                         coef = {'q':q,
                                  'L1':0,
                                  'L2':1,
@@ -163,18 +164,39 @@ class Parameter(object):
             self.parameter['dipole'].append(tmp)
 
     def decoherence(self):
+        gamma = 0.001
         if self.d1 == 1:
             j2 = 1.0/2.0
+            Gamma = 2*np.pi*4.575e6 #this is parameter for D1 line
         else:
-            j2 = 3.0/2.0    
-        Gamma = 2*np.pi*4.575e6 #this is parameter for D1 line
+            j2 = 3.0/2.0
+            Gamma = 2*np.pi*5.234e6
+
         n=self.parameter['n']
         self.parameter['decoherence_matrix'] = [[[] for i in range(n)] for j in range(n)]
         cs = Atom()
-        """
-        e l=1 f=3 g l=0 f=4
-        e l=1 f=3 g l=0 f=3
-        """
+        #gamma
+        for i in range(n):
+            for j in range(i,n):
+                d1 = self.index2lfm(i)
+                d2 = self.index2lfm(j)
+                if d1[0:2] == (0,3) and d2[0:2] == (0,3):
+                    if i == j:
+                        for q in [-1.0,0.0,1.0]:
+                            ii = int(self.lfm2index(0,4,d1[2]+q))
+                            self.parameter['decoherence_matrix'][ii][ii].append([ii,ii,-1*gamma/3.0])
+                            self.parameter['decoherence_matrix'][ii][ii].append([i,j,gamma/3.0])
+                            self.parameter['decoherence_matrix'][i][j].append([ii,ii,gamma/3.0])
+                            self.parameter['decoherence_matrix'][i][j].append([i,j,-1*gamma/3.0])
+                            self.graph.add_edge(pydot.Edge(self.l0subn[4][int(d1[2]+q+4)],self.l0subn[3][int(d1[2]+3)],label = 'gamma/3'))
+                #     else:
+                #         self.parameter['decoherence_matrix'][i][j].append([i,j,-1*gamma])
+                # if d1[0:2] == (0,4) and d2[0:2] == (0,4):
+                #     if i != j:
+                #         self.parameter['decoherence_matrix'][i][j].append([i,j,-1*gamma])
+                if d1[0:2] == (0,4) and d2[0:2] == (0,3):
+                    self.parameter['decoherence_matrix'][i][j].append([i,j,-1*gamma])
+        #Gamma
         for pair in self.egpair:
             for i in range(n):
                 for j in range(i,n):
@@ -182,7 +204,7 @@ class Parameter(object):
                     d2 = self.index2lfm(j)
                     if d1[0:2] == pair[0] and d2[0:2] == pair[0] and i != j:
                           self.parameter['decoherence_matrix'][i][j].append([i,j,-1.0*Gamma])
-                    if d1[0:2] == pair[0] and d2[0:2] == pair[1]:
+                    elif d1[0:2] == pair[0] and d2[0:2] == pair[1]:
                         self.parameter['decoherence_matrix'][i][j].append([i,j,-1.0*Gamma/2.0])
                     elif d1[0:2] == pair[1] and d2[0:2] == pair[0]:
                         self.parameter['decoherence_matrix'][i][j].append([i,j,-1.0*Gamma/2.0])
@@ -220,11 +242,13 @@ class Parameter(object):
                                     self.parameter['decoherence_matrix'][i][j].append([ii,jj,tmp])
                                     if ii == jj:
                                         self.parameter['decoherence_matrix'][int(ii)][int(jj)].append([ii,jj,-1*tmp])
+                                        #add to graph
                                         f1 = int(pair[0][1])
                                         f2 = int(pair[1][1])
-                                        label = '%f'%tmp
+                                        label = '%.2e'%tmp
                                         self.graph.add_edge(pydot.Edge(self.l1subn[f1][int(d1[2]+q+f1)],self.l0subn[f2][int(d1[2]+f2)],label = label))
-                                        
+
+
     def write(self):
         self.prepare_graph()
         self.level_group()
@@ -241,14 +265,14 @@ class Parameter(object):
                 sum += j[2]
                 psum += j[2]
             print "{:3d}:{:3d} {:3d} {:3d}| {:<100} |Sum is: {:>20f}".format(i,self.index2lfm(i)[0],self.index2lfm(i)[1],self.index2lfm(i)[2],iter,psum)
-            psum = 0.0        
+            psum = 0.0
 
         print "the sum is %f" %sum
         txtf = open(self.filename+'.txt','w')
         txtf.write(str(self.parameter))
         txtf.close()
         self.write_graph()
-        
+
     def prepare_graph(self):
         for i in self.l1f:
             self.l1subg[i] = pydot.Subgraph('',rank = 'same')
@@ -265,9 +289,10 @@ class Parameter(object):
                 name = 'L=0,F=%d,m=%d' %(i,j)
                 self.l0subn[i].append(pydot.Node(name))
                 self.l0subg[i].add_node(self.l0subn[i][j+i])
-            self.graph.add_subgraph(self.l0subg[i])        
+            self.graph.add_subgraph(self.l0subg[i])
+
     def write_graph(self):
-        self.graph.write_png(self.filename+'png')
-    
+        self.graph.write_png(self.filename+'.png')
+
 if __name__ == '__main__':
     pass
