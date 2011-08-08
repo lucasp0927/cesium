@@ -3,6 +3,7 @@ from __future__ import division
 import numpy as np
 from atom import Atom
 import math
+import pydot
 
 class Parameter(object):
     """
@@ -22,6 +23,11 @@ class Parameter(object):
         self.parameter = parameter
         self.omega_list = omega_list
         self.filename = filename
+        self.graph = pydot.Dot('csgraph',graph_type = 'digraph')
+        self.l1subg = {}
+        self.l0subg = {}
+        self.l1subn = {}
+        self.l0subn = {}        
         n = 0
         for i in l1f:
             n += 2*i + 1
@@ -213,9 +219,14 @@ class Parameter(object):
                                     jj = self.lfm2index(pair[0][0],pair[0][1],d2[2]+q)
                                     self.parameter['decoherence_matrix'][i][j].append([ii,jj,tmp])
                                     if ii == jj:
-                                        self.parameter['decoherence_matrix'][int(ii)][int(jj)].append([ii,jj,-1*tmp])   
+                                        self.parameter['decoherence_matrix'][int(ii)][int(jj)].append([ii,jj,-1*tmp])
+                                        f1 = int(pair[0][1])
+                                        f2 = int(pair[1][1])
+                                        label = '%f'%tmp
+                                        self.graph.add_edge(pydot.Edge(self.l1subn[f1][int(d1[2]+q+f1)],self.l0subn[f2][int(d1[2]+f2)],label = label))
                                         
     def write(self):
+        self.prepare_graph()
         self.level_group()
         self.omega()
         self.dipole()
@@ -236,21 +247,27 @@ class Parameter(object):
         txtf = open(self.filename+'.txt','w')
         txtf.write(str(self.parameter))
         txtf.close()
+        self.write_graph()
         
+    def prepare_graph(self):
+        for i in self.l1f:
+            self.l1subg[i] = pydot.Subgraph('',rank = 'same')
+            self.l1subn[i] = []
+            for j in range(-1*i,i+1):
+                name = 'L=1,F=%d,m=%d' %(i,j)
+                self.l1subn[i].append(pydot.Node(name))
+                self.l1subg[i].add_node(self.l1subn[i][j+i])
+            self.graph.add_subgraph(self.l1subg[i])
+        for i in self.l0f:
+            self.l0subg[i] = pydot.Subgraph('',rank = 'same')
+            self.l0subn[i] = []
+            for j in range(-1*i,i+1):
+                name = 'L=0,F=%d,m=%d' %(i,j)
+                self.l0subn[i].append(pydot.Node(name))
+                self.l0subg[i].add_node(self.l0subn[i][j+i])
+            self.graph.add_subgraph(self.l0subg[i])        
+    def write_graph(self):
+        self.graph.write_png(self.filename+'png')
+    
 if __name__ == '__main__':
-    A=351.72571850e12
-    B=12.79851e6
-    C=263.8906e6
-    D=188.4885e6
-    E=399.7128e6
-    F=4.021776399375e9
-    G=5.170855370625e9
-    para = Parameter((5,4,3,2),(4,3),0,
-                     (((1,5),(0,4)),((1,5),(0,3)),((1,4),(0,4)),((1,4),(0,3)),((1,3),(0,4)),((1,3),(0,3)),((1,2),(0,4)),((1,2),(0,3))),
-                     (G+A+C,G+A+B,G+A-D,G+A-E,G+F,0),
-                     {'nu': [A-F,A+G],
-                      'e_amp': [100, 100],
-                      'sweep_profile':[0,-1E10,1E10,4000]
-                      },
-                     'setting/d2')
-    para.write()
+    pass
