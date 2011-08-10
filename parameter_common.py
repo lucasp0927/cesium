@@ -164,7 +164,7 @@ class Parameter(object):
             self.parameter['dipole'].append(tmp)
 
     def decoherence(self):
-        gamma = 0.001
+        gamma = 0.0
         if self.d1 == 1:
             j2 = 1.0/2.0
             Gamma = 2*np.pi*4.575e6 #this is parameter for D1 line

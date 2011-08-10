@@ -101,7 +101,7 @@ class System:
         """
         Add frequency dependent terms to system matrix.
         """
-        if nu is NOTHING:
+        if nu is NOTHING: #because can't use self.xxx as default 
             nu = self.nu
         for i in range(self.n):
             for j in range(i+1,self.n):
@@ -198,9 +198,6 @@ class System:
             p.join()
             print "%s.exitcode = %s" %(p.name, p.exitcode)
 
-        # for i in range(core):
-        #     a = done_queue.get()
-        #     self.result[a[0][0]:a[0][1]+1] = a[1]
         tStop = time.time()
         print"spend",(tStop - tStart),"second"
             
@@ -228,21 +225,15 @@ class System:
     def von_neumann(self,system):
         for i in range(self.n):
             for j in range(i,self.n):
-                #for every upper diagonal terms
-                if i==j:
-                    for k in range(self.n):
-                        tmp = self.hamilton[i][k]*Expolist([Expo(1,-1*self.interaction(k,i))])
-                        system[self.index(i,i)][self.index(k,i)] += tmp*(-1*1j)
-                        tmp = self.hamilton[k][i]*Expolist([Expo(1,-1*self.interaction(i,k))])
-                        system[self.index(i,i)][self.index(i,k)] -= tmp*(-1*1j)
-                else:
-                    for k in range(self.n):                    
+                for k in range(self.n):                    
                         tmp = self.hamilton[i][k]*Expolist([Expo(1,-1*self.interaction(k,j))])
-                        tmp *= Expolist([Expo(1,self.interaction(i,j))])
-                        system[self.index(i,j)][self.index(k,j)] += tmp*(-1*1j)
+                        tmp *= Expolist([Expo(1,self.interaction(i,j))])#result from differential in left hand side
+                        system[self.index(i,j)][self.index(k,j)] += tmp*(-1j)
+
+                        #minus part
                         tmp = self.hamilton[k][j]*Expolist([Expo(1,-1*self.interaction(i,k))])
                         tmp *= Expolist([Expo(1,self.interaction(i,j))])                        
-                        system[self.index(i,j)][self.index(i,k)] -= tmp*(-1*1j)
+                        system[self.index(i,j)][self.index(i,k)] -= tmp*(-1j)                
         return system
 
     def to_ri(self,system):
@@ -257,26 +248,27 @@ class System:
         for i in range(self.N):
             for j in range(self.N):
                 system[i][j] = system[i][j].mag()
+        print self.system
         #transform conjugate to real and imag
         for i in range(self.n):
             for j in range(i,self.n):
-                for k in range(self.n):
-                    for l in range(k,self.n):
-                        if (i==j and k!=l):
-                            id1 = self.index(i,j)
-                            id2 = self.index(k,l)
-                            tmp1 = (system[id1][id2]+system[id1][id2+1]).real
-                            tmp2 = (system[id1][id2]-system[id1][id2+1]).imag          
-                            system[id1][id2],system[id1][id2+1] = tmp1,-1*tmp2
-                        elif i!=j:
-                            id1 = self.index(i,j)
+                id1 = self.index(i,j)                
+                if i == j:
+                    for k in range(self.n):
+                        for l in range(k,self.n):
+                            if k != l:
+                                id2 = self.index(k,l)
+                                tmp1 = (system[id1][id2]+system[id1][id2+1]).real
+                                tmp2 = (system[id1][id2]-system[id1][id2+1]).imag          
+                                system[id1][id2],system[id1][id2+1] = tmp1,-1*tmp2
+                else:
+                    for k in range(self.n):
+                        for l in range(k,self.n):
                             id2 = self.index(k,l)
                             if k==l:
                                 tmp = system[id1][id2]
                                 system[id1][id2],system[id1+1][id2]=tmp.real,tmp.imag
                             else:
-                                id1 = self.index(i,j)
-                                id2 = self.index(k,l)
                                 tmp1 = system[id1][id2]+system[id1][id2+1]
                                 tmp2 = system[id1][id2]-system[id1][id2+1]
                                 system[id1][id2],system[id1][id2+1] = tmp1.real,-1*tmp2.imag
@@ -308,8 +300,10 @@ class System:
         self.system = self.von_neumann(self.system) #(H rho-rho H)/i
         print 'decoherence...'
         self.system = self.decoherence(self.system) #Add decoherence terms
+        print self.system
         print 'to_ri'        
-        self.system = self.to_ri(self.system) 
+        self.system = self.to_ri(self.system)
+        print self.system
         self.system = self.normalize(self.system) #change last row of system matrix to normalize condition.
         self.system = np.array(self.system) #convert system to np.array, so that it can be solved using scipy.
         #choose threading or multiprocessing here
