@@ -134,31 +134,33 @@ class Parameter(object):
                     d1 = self.index2lfm(i)
                     d2 = self.index2lfm(j)
                     if d1[0] == 0 and d2[0] == 1:
-                        q=self.parameter['e_amp'][k][1]
-                        coef = {'q':q,
-                                 'L1':0,
-                                 'L2':1,
-                                 'F1':d1[1],
-                                 'F2':d2[1],
-                                 'mf1':d1[2],
-                                 'mf2':d2[2]+q,
-                                 'J1':1.0/2.0,
-                                 'J2':j2,
-                                 'I':7.0/2.0}
-                        tmp[i][j] = cs.dipole_element(**coef)
+                        q_arr=self.parameter['e_amp'][k][1]
+                        for q in q_arr:
+                            coef = {'q':q,
+                                     'L1':0,
+                                     'L2':1,
+                                     'F1':d1[1],
+                                     'F2':d2[1],
+                                     'mf1':d1[2],
+                                     'mf2':d2[2]+q,
+                                     'J1':1.0/2.0,
+                                     'J2':j2,
+                                     'I':7.0/2.0}
+                            tmp[i][j] += cs.dipole_element(**coef)
                     elif d2[0] == 0 and d1[0] == 1:
-                        q=self.parameter['e_amp'][k][1]
-                        coef = {'q':q,
-                                 'L1':0,
-                                 'L2':1,
-                                 'F1':d2[1],
-                                 'F2':d1[1],
-                                 'mf1':d2[2],
-                                 'mf2':d1[2]+q,
-                                 'J1':1.0/2.0,
-                                 'J2':j2,
-                                 'I':7.0/2.0}
-                        tmp[i][j] = cs.dipole_element(**coef)
+                        q_arr=self.parameter['e_amp'][k][1]
+                        for q in q_arr:
+                            coef = {'q':q,
+                                     'L1':0,
+                                     'L2':1,
+                                     'F1':d2[1],
+                                     'F2':d1[1],
+                                     'mf1':d2[2],
+                                     'mf2':d1[2]+q,
+                                     'J1':1.0/2.0,
+                                     'J2':j2,
+                                     'I':7.0/2.0}
+                            tmp[i][j] += cs.dipole_element(**coef)
                     else:
                         tmp[i][j] = 0.0
             self.parameter['dipole'].append(tmp)

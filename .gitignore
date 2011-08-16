@@ -1,6 +1,6 @@
 #test file#
-/*.txt
-/*.dat
+cesium_cw/*.txt
+cesium_cw/*.dat
 *.pyc
 *.png
 *.gp
@@ -9,4 +9,4 @@
 .ropeproject
 .zcache
 test*
-/setting/*
+/cesium_cw/setting/*

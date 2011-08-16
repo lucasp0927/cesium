@@ -248,7 +248,7 @@ class System:
         for i in range(self.N):
             for j in range(self.N):
                 system[i][j] = system[i][j].mag()
-        print self.system
+#        print self.system
         #transform conjugate to real and imag
         for i in range(self.n):
             for j in range(i,self.n):
@@ -300,10 +300,9 @@ class System:
         self.system = self.von_neumann(self.system) #(H rho-rho H)/i
         print 'decoherence...'
         self.system = self.decoherence(self.system) #Add decoherence terms
-        print self.system
         print 'to_ri'        
         self.system = self.to_ri(self.system)
-        print self.system
+#        print self.system
         self.system = self.normalize(self.system) #change last row of system matrix to normalize condition.
         self.system = np.array(self.system) #convert system to np.array, so that it can be solved using scipy.
         #choose threading or multiprocessing here
