@@ -3,11 +3,9 @@ from __future__ import division
 import numpy as np
 import matplotlib.pyplot as plt
 
-
 class Electricfield():
     """
     """
-    
     def __init__(self,para):
         """
         """
@@ -21,17 +19,30 @@ class Electricfield():
                    para['E_0'],
                    para['tao']]
         self.period = self.calculate_period()
+        self.time_no_field = self.tao*np.power(9*np.log(10),0.5)
+        self.full_length = self.Tr*self.period
+
+    def field(self,t):
+        """
+        input real time
+        """
+        n = np.floor(t / self.Tr)
+        t_remain = t - n*self.Tr
+        e = self.comb_field(t_remain - self.Tr/2.0,n)
+        return e
         
     def comb_field(self,t,n):
-        mu_c = 351.72571850e12 #carier frequency 852 nm
-        PSI = 1.0/2.0*np.pi #phase difference
-        return np.cos(2*np.pi*mu_c*t - n*PSI)*envolope(t)
+        """
+        pulse is place at t = 0
+        """
+        if np.abs(t) < self.time_no_field:
+            return np.cos(2*np.pi*self.mu_c*t - n*self.PSI)*self.envolope(t)
+        else:
+            return 0.0
 
     def envolope(self,t):
         #envolope
-        E_0 = 1.0
-        tao = 3e-14
-        return E_0*np.exp(-1.0*np.power(t/tao,2))
+        return self.E_0*np.exp(-1.0*np.power(t/self.tao,2))
 
     def calculate_period(self):
         """
@@ -67,6 +78,4 @@ class Electricfield():
             raise ValuError('Period is incorrect %e' %(second) )
         return period
         
-if __name__ == '__main__':
-    pass
 
