@@ -9,4 +9,6 @@ cesium_cw/*.dat
 .ropeproject
 .zcache
 test*
-/cesium_cw/setting/*
+/cesium_cw/setting/*.png
+/cesium_cw/setting/d1*
+/cesium_cw/setting/d2*
