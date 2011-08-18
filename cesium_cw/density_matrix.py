@@ -9,6 +9,7 @@ import numpy as np
 import sys
 from progress_bar import ProgressBar
 import time #record calculate time
+from constant import *
 
 NOTHING = object()
 class System:
@@ -26,9 +27,9 @@ class System:
             terms = []
             for k in range(len(self.e_amp)):
                 for l in range(2):
-                    mag = -1*self.dipole[k][i][j]*self.e_amp[k][0]/2.0
+                    mag = (-1*self.dipole[k][i][j]*self.e_amp[k][0]/2.0)/HBAR()
                     freq = (-1)**l*self.nu[k]
-                    terms.append(Expo(mag,freq))
+                    terms.append(Expo(mag,freq))#*(1.0/HBAR()))
             return Expolist(terms)
 
     def index(self,i,j):
