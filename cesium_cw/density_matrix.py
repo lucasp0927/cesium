@@ -306,7 +306,7 @@ class System:
 #        print self.system
         self.system = self.normalize(self.system) #change last row of system matrix to normalize condition.
         self.system = np.array(self.system) #convert system to np.array, so that it can be solved using scipy.
-        #choose threading or multiprocessing here
+        #choose threading or multiprocessing here, function pointer
         self.sweep = self.sweep_multiprocessing
         
 if __name__ ==  '__main__':
