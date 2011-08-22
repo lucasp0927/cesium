@@ -31,8 +31,8 @@ if __name__ == '__main__':
 #                     (((1,4),(0,3)),),
                      (G+A+C,G+A+B,G+A-D,G+A-E,G+F,0),
                      {'nu': [A-F+B,A+G+B],
-                      'e_amp': [(100,(0,)), (100,(0,))],
-                      'sweep_profile':[0,-1E8,1E8,400],
+                      'e_amp': [(5,(-1,1)), (5,(-1,1))],
+                      'sweep_profile':[0,-5E4,5E4,200],
                       },
                      filename)
     para.write()

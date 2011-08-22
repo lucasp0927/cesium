@@ -293,7 +293,7 @@ class System:
         self.N = self.n**2 #number of independent density matrix variable
         self.result = []
         print '  initializing system matrix...'        
-        self.system = [[Expolist() for i in range(self.N)] for j in range(self.N)]
+        self.system = [[Expolist() for i in xrange(self.N)] for j in xrange(self.N)]
         print '  initializing hamiltonian...'
         self.hamilton = np.array([[self.hamiltonian(i,j) for j in range(self.n)]for i in range(self.n)])
         #Start calculate

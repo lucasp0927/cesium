@@ -250,11 +250,17 @@ class Parameter(object):
                                         label = '%.2e'%tmp
                                         self.graph.add_edge(pydot.Edge(self.l1subn[f1][int(d1[2]+q+f1)],self.l0subn[f2][int(d1[2]+f2)],label = label))
 
-
+    def nu(self):
+        self.parameter['nu'] = []
+        for pair in self.parameter['nup']:
+            freq = self.parameter['omega'][self.lfm2index(*pair[0])]-self.parameter['omega'][self.lfm2index(*pair[1])]
+            self.parameter['nu'].append(freq)
+        
     def write(self):
         self.prepare_graph()
         self.level_group()
         self.omega()
+        self.nu()
         self.dipole()
         self.decoherence()
         print "      L   F   M|"
