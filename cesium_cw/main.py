@@ -56,8 +56,9 @@ def plot_plt_d1(n):
     plt.figure()
     plt.xlabel("frequency (Hz)")
     for i in range(4):
+        plt.subplot(4,1,i)
         plt.plot(data_sum[0,:],data_sum[i+1,:],label = option[i+1])
-    plt.legend()
+        plt.legend()
     plt.savefig("%s.png"%(file_out) )
     plt.show()
 
@@ -88,8 +89,9 @@ def plot_plt_d2(n):
     plt.figure()
     plt.xlabel("frequency (Hz)")
     for i in range(6):
+        plt.subplot(6,1,i)        
         plt.plot(data_sum[0,:],data_sum[i+1,:],label = option[i+1])
-    plt.legend()
+        plt.legend()
     plt.savefig("%s.png"%(file_out) )
     plt.show()
 
