@@ -75,7 +75,7 @@ class Parameter(object):
             for F in LL[1]:#l
                 gf = gj * (F*(F+1) - I*(I+1) + J*(J+1)) / (2*F*(F+1)) + gi * (F*(F+1)+ I*(I+1) - J*(J+1)) / (2*F*(F+1))
                 for m in range(-F,F+1): #m
-                    print L,F,m,self.omega_list[counter] + mub * self.B * m * gf
+                    #print L,F,m,self.omega_list[counter] + mub * self.B * m * gf
                     self.parameter['omega'].append(self.omega_list[counter] + mub * self.B * m * gf)
                 counter += 1
 
@@ -166,7 +166,7 @@ class Parameter(object):
             self.parameter['dipole'].append(tmp)
 
     def decoherence(self):
-        gamma = 0.0
+        gamma = 500.0
         if self.d1 == 1:
             j2 = 1.0/2.0
             Gamma = 2*np.pi*4.575e6 #this is parameter for D1 line
@@ -182,8 +182,8 @@ class Parameter(object):
             for j in range(i,n):
                 d1 = self.index2lfm(i)
                 d2 = self.index2lfm(j)
-                if d1[0:2] == (0,3) and d2[0:2] == (0,3):
-                    if i == j:
+                if d1[0:2] == (0,3) and d2[0:2] == (0,3): #ground state
+                    if i == j: # diagonal
                         for q in [-1.0,0.0,1.0]:
                             ii = int(self.lfm2index(0,4,d1[2]+q))
                             self.parameter['decoherence_matrix'][ii][ii].append([ii,ii,-1*gamma/3.0])
@@ -191,13 +191,12 @@ class Parameter(object):
                             self.parameter['decoherence_matrix'][i][j].append([ii,ii,gamma/3.0])
                             self.parameter['decoherence_matrix'][i][j].append([i,j,-1*gamma/3.0])
                             self.graph.add_edge(pydot.Edge(self.l0subn[4][int(d1[2]+q+4)],self.l0subn[3][int(d1[2]+3)],label = 'gamma/3'))
-                #     else:
-                #         self.parameter['decoherence_matrix'][i][j].append([i,j,-1*gamma])
-                # if d1[0:2] == (0,4) and d2[0:2] == (0,4):
-                #     if i != j:
-                #         self.parameter['decoherence_matrix'][i][j].append([i,j,-1*gamma])
-                if d1[0:2] == (0,4) and d2[0:2] == (0,3):
-                    self.parameter['decoherence_matrix'][i][j].append([i,j,-1*gamma])
+                if d2[0:2] == (0,3):
+                    allow_state = [self.lfm2index(0,4,d2[2]+1),self.lfm2index(0,4,d2[2]+0),self.lfm2index(0,4,d2[2]+-1)]
+#                    print allow_state ,self.index2lfm(i),self.index2lfm(j)
+                    if  i in allow_state:
+#                        print('allowed non diagonal states')
+                        self.parameter['decoherence_matrix'][i][j].append([i,j,-1.0*gamma/3.0])
         #Gamma
         for pair in self.egpair:
             for i in range(n):
@@ -263,8 +262,8 @@ class Parameter(object):
         self.nu()
         self.dipole()
         self.decoherence()
-        print "      L   F   M|"
-        print "----------------------------------------"
+        #print "      L   F   M|"
+        #print "----------------------------------------"
         sum = 0.0
         psum = 0.0
         for i in range(self.parameter['n']):
@@ -272,10 +271,10 @@ class Parameter(object):
             for j in iter:
                 sum += j[2]
                 psum += j[2]
-            print "{:3d}:{:3d} {:3d} {:3d}| {:<100} |Sum is: {:>20f}".format(i,self.index2lfm(i)[0],self.index2lfm(i)[1],self.index2lfm(i)[2],iter,psum)
+         #   print "{:3d}:{:3d} {:3d} {:3d}| {:<100} |Sum is: {:>20f}".format(i,self.index2lfm(i)[0],self.index2lfm(i)[1],self.index2lfm(i)[2],iter,psum)
             psum = 0.0
 
-        print "the sum is %f" %sum
+        #print "the sum is %f" %sum
         txtf = open(self.filename+'.txt','w')
         txtf.write(str(self.parameter))
         txtf.close()
