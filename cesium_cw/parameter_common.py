@@ -10,7 +10,7 @@ class Parameter(object):
     """
     """
 
-    def __init__(self,l1f,l0f,B,d1,egpair,omega_list,parameter,filename):
+    def __init__(self,l1f,l0f,B,d1,gamma,egpair,omega_list,parameter,filename):
         """
         if d1 = 1 then d1 else d2
         l1f = (5,4,3)
@@ -29,6 +29,7 @@ class Parameter(object):
         self.l0subg = {}
         self.l1subn = {}
         self.l0subn = {}
+        self.gamma = gamma
         n = 0
         for i in l1f:
             n += 2*i + 1
@@ -166,7 +167,7 @@ class Parameter(object):
             self.parameter['dipole'].append(tmp)
 
     def decoherence(self):
-        gamma = 500.0
+        gamma = self.gamma
         if self.d1 == 1:
             j2 = 1.0/2.0
             Gamma = 2*np.pi*4.575e6 #this is parameter for D1 line
@@ -256,6 +257,7 @@ class Parameter(object):
             self.parameter['nu'].append(freq)
         
     def write(self):
+        self.parameter['d1'] = self.d1
         self.prepare_graph()
         self.level_group()
         self.omega()

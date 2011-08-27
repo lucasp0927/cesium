@@ -129,5 +129,11 @@ if __name__ ==  '__main__':
 
     system = System(parameter)
     parameter['sweep_profile'].append(file_out)
+    if parameter['d1'] == 1:
+        plot_current = plot_plt_d1
+    elif parameter['d1'] == 0:
+        plot_current = plot_plt_d2
+    else:
+        plot_current = plot_plt
     system.sweep(*parameter['sweep_profile'])# can parameter add after unpack array?
-    plot_plt_d1(parameter['n'])
+    plot_current(parameter['n'])
