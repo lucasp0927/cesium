@@ -35,7 +35,10 @@ if __name__ == '__main__':
     w =  EF.time_no_field
     print w
     print EF.period
-    t = np.linspace(4.5*para['Tr']-w,4.5*para['Tr']+w,100000)
+    print EF.Tr
+    print EF.full_length
+#    t = np.linspace(4.5*para['Tr']-w,4.5*para['Tr']+w,100000)
+    t = np.linspace(0,EF.full_length,1000000)
     x = []
     
     for t_i in t:
