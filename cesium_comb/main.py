@@ -1,9 +1,8 @@
 #!/usr/bin/python2
 import sys
 import os
-from density_matrix import System
+from solver import Solver
 import numpy as np
-import pickle #pickle is not very safe
 import matplotlib.pyplot as plt
 
 def count_line():
@@ -95,46 +94,19 @@ def plot_plt_d2(n):
     plt.savefig("%s.png"%(file_out) )
     plt.show()
 
-def plot_gnuplot(n):
-    """
-    Plot using gnuplot.
-    """
-    f=open('./tmp.gp','w')
-    f.write('set terminal png\nset output \'%s.png\'\n'%(file_out) )
-    tmp_str = 'plot \'%s\' using 1:2 with lines'%file_out
-    for i in range(n-1):
-        tmp_str += ', \'%s\' using 1:%d with lines'%(file_out,i+3)
-    tmp_str += '\n'
-    f.write(tmp_str)
-    f.close()
-    os.system('gnuplot tmp.gp')
-    os.remove('tmp.gp')
 
 if __name__ ==  '__main__':
     file_in = sys.argv[1]
     file_out = sys.argv[2]
 
-    # dictf = open('three_level','w')
-    # pickle.dump(parameter,dictf)
-    # dictf.close()
-
+    #read parameter
     dictf = open(file_in,'r')
     parameter = eval(dictf.read())
-#    parameter = pickle.load(dictf)
     dictf.close()
 
-    # txtf = open(file_in+'.txt','w')
-    # txtf.write(str(parameter))
-    # txtf.close()
+#    system = System(parameter)
+    """
+    initiate Solver here
+    """
 
-    system = System(parameter)
-    parameter['sweep_profile'].append(file_out)
-    try:
-        if parameter['d1'] == 1: #d1
-            plot_current = plot_plt_d1
-        elif parameter['d1'] == 0:#d2
-            plot_current = plot_plt_d2
-    except KeyError:#d1 is not specific in parameter
-        plot_current = plot_plt
-    system.sweep(*parameter['sweep_profile'])# can parameter add after unpack array?
-    plot_current(parameter['n'])
+    
