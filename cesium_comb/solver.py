@@ -2,15 +2,17 @@
 import numpy as np
 from electricfield import Electricfield
 from constant import *
+from scipy.linalg.matfuncs import *
 
 class Solver(object):
     """
     """
 
-    def __init__(self,parameter):
+    def __init__(self,parameter,electric_field):
         """
         """
         print 'initializing...'
+        self.EF = electric_field
         self.n = parameter['n'] #number of state
         self.dipole = parameter['dipole']
         self.omega = parameter['omega']
@@ -22,6 +24,7 @@ class Solver(object):
         print 'static part...'
         self.decoherence()
         self.diagonal_h()
+        #print self.no_field_matrix()
         
     def index(self,i,j):
         if i==j:
@@ -66,8 +69,10 @@ class Solver(object):
         #[H,r]*(-i h)
         for i in range(0,self.n):
             for j in range(0,self.n):
-                self.matrix_static[self.index(i,j)][self.index(i,j)]=(self.omega[i]-self.omega[j])*-1j
+                self.matrix_static[self.index(i,j)][self.index(i,j)]+=(self.omega[i]-self.omega[j])*(-1j)
 
+    def no_field_matrix(self):
+        return expm(np.matrix(self.matrix_static)*self.EF.zero_segment)
         
 if __name__ == '__main__':
     pass
