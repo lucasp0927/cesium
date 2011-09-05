@@ -10,7 +10,7 @@ class Electricfield():
         """
         """
         [self.Tr,#repetition rate
-        self.mu_c, #carrier freq
+        self.mu_c, #carrier freq hz not rad
         self.PSI, #phase difference
         self.E_0, #electric field
         self.tao]=[para['Tr'],
