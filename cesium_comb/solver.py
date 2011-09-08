@@ -25,29 +25,35 @@ class Solver(object):
         print 'static part...'
         self.decoherence()
         self.diagonal_h()
-        print 'dipole....'        
+        print 'dipole....'
         self.matrix_dipole()
         #print self.no_field_matrix()
         print 'calculate total matrix...'
         self.calculate_period()
-        
+
     def calculate_period(self):
-        matrix_nofield = self.no_field_matrix()
+#        matrix_nofield = self.no_field_matrix()
+        ##DEBUG
+        matrix_nofield = np.matrix(np.eye(self.N,dtype = complex))
         for n in range(self.EF.period):
             print 'calculate period %d'%(n)
             self.matrix_total = matrix_nofield*self.matrix_total
             self.matrix_total = self.calculate_matrix_electric(n)*self.matrix_total
             self.matrix_total = matrix_nofield*self.matrix_total
-            
+
     def calculate_matrix_electric(self,n):
         tmp = np.matrix(np.eye(self.N,dtype = complex))
-        identity_matrix =np.matrix(np.eye(self.N,dtype = complex)
+        identity_matrix =np.matrix(np.eye(self.N,dtype = complex))
         t_arr = np.linspace(-1.0*self.EF.time_no_field,self.EF.time_no_field,10000)
         dt = t_arr[1]-t_arr[0]
+        m1 = identity_matrix + self.matrix_static * dt
+        print len(m1)
         for t in t_arr:
-            tmp = identity_matrix + (self.matrix_electric *self.EF.comb_field(t,n)+self.matrix_static) *dt)*tmp
+            print(t)
+            E = self.EF.comb_field(t,n) * dt
+            tmp = np.dot((m1+ self.matrix_electric * E),tmp)
         return tmp
-    
+
     def index(self,i,j):
         if i==j:
             return (self.n + (self.n - i + 1)) * i - i
@@ -99,17 +105,17 @@ class Solver(object):
                 for k in range(self.n):
                     self.matrix_electric[self.index(i,j)][self.index(k,j)]+=self.dipole_h(i,k)*(-1j)
                     self.matrix_electric[self.index(i,j)][self.index(i,k)]-=self.dipole_h(k,j)*(-1j)
-                    
+
     def dipole_h(self,i,j):
         if i <= j:
             return self.dipole[0][i][j]
         else:
             return self.dipole[0][j][i]
-             
+
     def no_field_matrix(self):
         return expm(np.matrix(self.matrix_static)*self.EF.zero_segment)
 
-    
-    
+
+
 if __name__ == '__main__':
     pass
