@@ -29,13 +29,14 @@ if __name__ == '__main__':
     print 'period is ',EF.period
     print 'zero_segment ',EF.zero_segment
     print 'wave in packet', para['mu_c']*EF.time_no_field*2
-    file_in = 'setting/d1_2.txt'
+    file_in = 'setting/three_level.txt'
     dictf = open(file_in,'r')
     parameter = eval(dictf.read())
     dictf.close()    
     S = Solver(parameter,EF)
+    #print S.build_matrix_dict(3)
     #print np.matrix(S.matrix_static)
-    print np.matrix(S.matrix_total)
+#    print np.matrix(S.matrix_total)
     
     # # ### test_free decay
     # init = np.zeros([9,1],dtype = complex)
