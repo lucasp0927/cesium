@@ -34,7 +34,7 @@ class Solver(object):
         #print self.no_field_matrix()
         print 'calculate total matrix...'
         #self.calculate_period()
-        self.calculate_matrix_electric(0)
+        #self.calculate_matrix_electric(0)
 
     def calculate_period(self):
         matrix_nofield = self.no_field_matrix()
@@ -61,13 +61,13 @@ class Solver(object):
         print self.sum_matrix(He)
         print Hs
         print He
-        for pass_n in range(1,3):
-            tmp = result = np.matrix(np.zeros([self.N,self.N],dtype = complex))
+        for pass_n in range(1,4):
+#            tmp = result = np.matrix(np.zeros([self.N,self.N],dtype = complex))
             dict = self.build_matrix_dict(pass_n)
 
             ###This is the slowest part
             c_tmp = 0
-            E_x = np.zeros(pass_n)            
+            E_x = np.zeros(pass_n)
             for x in self.perm(pass_n,0,num):
                 if c_tmp != x[0]:
                     print x[0]
@@ -75,15 +75,33 @@ class Solver(object):
 
                 for i in range(pass_n):
                     E_x[i] = E_arr[x[i]]
-                    
-                for index in range(2**pass_n):
-                    # coef_tmp = 1.0
-                    # for p_id in range(pass_n):
-                    #    if dict['pattern'][index][p_id] == 1:
-                    #        coef_tmp *= E_x[p_id]
 
-# #                    coef_tmp = np.prod(E_x**dict['pattern'][index])
-                     patt = dict['pattern'][index]                    
+
+                # patt = dict['pattern']
+                # coef = dict['coef']
+
+                # code="""
+                #      double coef_tmp;
+                #      for (int i = 0; i<2^pass_n; i++)
+                #      {
+                #         coef_tmp = 1.0;
+                #         for (int p_id = 0; p_id<pass_n; p_id++)
+                #         {
+                #         if (patt(i,p_id) == 1)
+                #            coef_tmp *= E_x(p_id);
+                #         }
+                #         coef(i) += coef_tmp;
+                #      }
+                #      return_val = coef;
+                #      """
+                # coef = scipy.weave.inline(code,
+                #                           ['patt','E_x','pass_n','coef'],
+                #                           type_converters=converters.blitz,
+                #                           compiler = 'gcc')
+
+                for index in range(2**pass_n):
+ #                    coef_tmp = np.prod(E_x**dict['pattern'][index])
+                     patt = dict['pattern'][index]
                      code="""
                           double coef_tmp;
                           coef_tmp = 1.0;
@@ -99,13 +117,12 @@ class Solver(object):
                                                        type_converters=converters.blitz,
                                                        compiler = 'gcc')
 #                    dict['coef'][index] += coef_tmp
-            result = tmp + result
             print dict
 
-            
+
             for index in range(2**pass_n):
                 tmp = np.matrix(np.eye(self.N,dtype = complex))
-                print dict['pattern'][index]                
+                print dict['pattern'][index]
                 for p_id in range(pass_n):
                     if dict['pattern'][index][p_id] == 1:
                         tmp = np.dot(He,tmp)
@@ -114,7 +131,7 @@ class Solver(object):
                 tmp_0 = tmp*dict['coef'][index]
                 print 'average :', self.sum_matrix(tmp_0)
 #                print tmp_0
-                result = tmp+0 + result
+                result = tmp_0 + result
         result = np.matrix(np.eye(self.N,dtype = complex))+result
         print result
         return result
@@ -131,22 +148,22 @@ class Solver(object):
     def sum_matrix(self,A):
         sum = np.sum(np.abs(A))
         return sum/(self.N**2)
-        
+
     def build_matrix_dict(self,n):
         if n > 10:
             print 'n to big'
             raise ValueError
         dict = {}
-        dict['pattern'] = {}
-        #dict['count'] = {}
-        dict['coef'] = [0 for i in range(2**n)]
+        dict['pattern'] = np.zeros([2**n,n])
+#        dict['coef'] = [0 for i in range(2**n)]
+        dict['coef'] = np.zeros(2**n)
         for i in range(2**n):
 #            dict['pattern'][i] = ("{:0"+str(n)+"b}").format(i)#todo:find better way
-            dict['pattern'][i] = list(("{:0"+str(n)+"b}").format(i))
-            for j in range(len(dict['pattern'][i])):
-                dict['pattern'][i][j] = int(dict['pattern'][i][j])
-            dict['pattern'][i] = np.array(dict['pattern'][i])
-            #dict['count'][i] = self.count_one(dict['pattern'][i])
+            tmp = list(("{:0"+str(n)+"b}").format(i))
+            for j in range(len(tmp)):
+                tmp[j] = int(tmp[j])
+            tmp = np.array(tmp)
+            dict['pattern'][i] = tmp
         return dict
 
     def count_one(self,s):
