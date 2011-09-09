@@ -34,7 +34,8 @@ if __name__ == '__main__':
     parameter = eval(dictf.read())
     dictf.close()    
     S = Solver(parameter,EF)
-    #print S.build_matrix_dict(3)
+    # print S.build_matrix_dict(3)
+    # print S.build_matrix_dict(1)    
     #print np.matrix(S.matrix_static)
 #    print np.matrix(S.matrix_total)
     

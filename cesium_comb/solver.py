@@ -4,8 +4,8 @@ import numpy as np
 from electricfield import Electricfield
 from constant import *
 from scipy.linalg.matfuncs import *
-
-
+from scipy.weave import converters
+import scipy
 class Solver(object):
     """
     """
@@ -65,19 +65,40 @@ class Solver(object):
             tmp = result = np.matrix(np.zeros([self.N,self.N],dtype = complex))
             dict = self.build_matrix_dict(pass_n)
 
-
             ###This is the slowest part
             c_tmp = 0
+            E_x = np.zeros(pass_n)            
             for x in self.perm(pass_n,0,num):
                 if c_tmp != x[0]:
                     print x[0]
                 c_tmp = x[0]
+
+                for i in range(pass_n):
+                    E_x[i] = E_arr[x[i]]
+                    
                 for index in range(2**pass_n):
-                    coef_tmp = 1.0
-                    for p_id in range(pass_n):
-                        if dict['pattern'][index][p_id] == '1':
-                            coef_tmp *= E_arr[x[p_id]]
-                    dict['coef'][index] += coef_tmp
+                    # coef_tmp = 1.0
+                    # for p_id in range(pass_n):
+                    #    if dict['pattern'][index][p_id] == 1:
+                    #        coef_tmp *= E_x[p_id]
+
+# #                    coef_tmp = np.prod(E_x**dict['pattern'][index])
+                     patt = dict['pattern'][index]                    
+                     code="""
+                          double coef_tmp;
+                          coef_tmp = 1.0;
+                          for (int p_id = 0; p_id<pass_n; p_id++)
+                          {
+                            if (patt(p_id) == 1)
+                               coef_tmp *= E_x(p_id);
+                          }
+                          return_val = coef_tmp;
+                          """
+                     dict['coef'][index]+=scipy.weave.inline(code,
+                                                       ['patt','E_x','pass_n'],
+                                                       type_converters=converters.blitz,
+                                                       compiler = 'gcc')
+#                    dict['coef'][index] += coef_tmp
             result = tmp + result
             print dict
 
@@ -86,7 +107,7 @@ class Solver(object):
                 tmp = np.matrix(np.eye(self.N,dtype = complex))
                 print dict['pattern'][index]                
                 for p_id in range(pass_n):
-                    if dict['pattern'][index][p_id] == '1':
+                    if dict['pattern'][index][p_id] == 1:
                         tmp = np.dot(He,tmp)
                     else:
                         tmp = np.dot(Hs,tmp)
@@ -97,7 +118,6 @@ class Solver(object):
         result = np.matrix(np.eye(self.N,dtype = complex))+result
         print result
         return result
-        #print E_arr
 
         # simple version, slow. Not accurate.
         # m1 = identity_matrix + self.matrix_static * dt
@@ -109,10 +129,6 @@ class Solver(object):
         # return tmp
 
     def sum_matrix(self,A):
-        # sum = 0.0
-        # for i in range(self.N):
-        #     for j in range(self.N):
-        #         sum += np.abs(A[i,j])
         sum = np.sum(np.abs(A))
         return sum/(self.N**2)
         
@@ -122,11 +138,15 @@ class Solver(object):
             raise ValueError
         dict = {}
         dict['pattern'] = {}
-        dict['count'] = {}
+        #dict['count'] = {}
         dict['coef'] = [0 for i in range(2**n)]
         for i in range(2**n):
-            dict['pattern'][i] = ("{:0"+str(n)+"b}").format(i)
-            dict['count'][i] = self.count_one(dict['pattern'][i])
+#            dict['pattern'][i] = ("{:0"+str(n)+"b}").format(i)#todo:find better way
+            dict['pattern'][i] = list(("{:0"+str(n)+"b}").format(i))
+            for j in range(len(dict['pattern'][i])):
+                dict['pattern'][i][j] = int(dict['pattern'][i][j])
+            dict['pattern'][i] = np.array(dict['pattern'][i])
+            #dict['count'][i] = self.count_one(dict['pattern'][i])
         return dict
 
     def count_one(self,s):
