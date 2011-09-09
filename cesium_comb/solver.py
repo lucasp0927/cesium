@@ -5,7 +5,9 @@ from electricfield import Electricfield
 from constant import *
 from scipy.linalg.matfuncs import *
 from scipy.weave import converters
+from math import factorial
 import scipy
+
 class Solver(object):
     """
     """
@@ -23,7 +25,7 @@ class Solver(object):
 
         self.matrix_static = np.zeros([self.N,self.N],dtype = complex)#diagonal + decoherence
         self.matrix_electric = np.zeros([self.N,self.N],dtype = complex)
-        self.matrix_total = np.eye(self.N,dtype = complex)
+        self.matrix_total = np.identity(self.N,dtype = complex)
 
 
         print 'static part...'
@@ -49,7 +51,7 @@ class Solver(object):
     def calculate_matrix_electric(self,n):
         num = 10000
         result = np.matrix(np.zeros([self.N,self.N],dtype = complex))
-        identity_matrix =np.matrix(np.eye(self.N,dtype = complex))
+        identity_matrix =np.matrix(np.identity(self.N,dtype = complex))
         t_arr = np.linspace(-1.0*self.EF.time_no_field,self.EF.time_no_field,num)
         dt = 2.0*self.EF.time_no_field/(num-1)
         E_arr = np.zeros(num)
@@ -60,68 +62,68 @@ class Solver(object):
         print self.sum_matrix(Hs)
         print self.sum_matrix(He)
         print Hs
-        print He
-        for pass_n in range(1,4):
+        for pass_n in range(1,3):
 #            tmp = result = np.matrix(np.zeros([self.N,self.N],dtype = complex))
             dict = self.build_matrix_dict(pass_n)
 
             ###This is the slowest part
             c_tmp = 0
             E_x = np.zeros(pass_n)
-            for x in self.perm(pass_n,0,num):
-                if c_tmp != x[0]:
-                    print x[0]
-                c_tmp = x[0]
+            
+#             for x in self.perm(pass_n,0,num):
+#                 if c_tmp != x[0]:
+#                     print x[0]
+#                 c_tmp = x[0]
 
-                for i in range(pass_n):
-                    E_x[i] = E_arr[x[i]]
+#                 for i in range(pass_n):
+#                     E_x[i] = E_arr[x[i]]
 
+#                 # patt = dict['pattern']
+#                 # coef = dict['coef']
 
-                # patt = dict['pattern']
-                # coef = dict['coef']
+#                 # code="""
+#                 #      double coef_tmp;
+#                 #      for (int i = 0; i<2^pass_n; i++)
+#                 #      {
+#                 #         coef_tmp = 1.0;
+#                 #         for (int p_id = 0; p_id<pass_n; p_id++)
+#                 #         {
+#                 #         if (patt(i,p_id) == 1)
+#                 #            coef_tmp *= E_x(p_id);
+#                 #         }
+#                 #         coef(i) += coef_tmp;
+#                 #      }
+#                 #      return_val = coef;
+#                 #      """
+#                 # coef = scipy.weave.inline(code,
+#                 #                           ['patt','E_x','pass_n','coef'],
+#                 #                           type_converters=converters.blitz,
+#                 #                           compiler = 'gcc')
 
-                # code="""
-                #      double coef_tmp;
-                #      for (int i = 0; i<2^pass_n; i++)
-                #      {
-                #         coef_tmp = 1.0;
-                #         for (int p_id = 0; p_id<pass_n; p_id++)
-                #         {
-                #         if (patt(i,p_id) == 1)
-                #            coef_tmp *= E_x(p_id);
-                #         }
-                #         coef(i) += coef_tmp;
-                #      }
-                #      return_val = coef;
-                #      """
-                # coef = scipy.weave.inline(code,
-                #                           ['patt','E_x','pass_n','coef'],
-                #                           type_converters=converters.blitz,
-                #                           compiler = 'gcc')
-
-                for index in range(2**pass_n):
- #                    coef_tmp = np.prod(E_x**dict['pattern'][index])
-                     patt = dict['pattern'][index]
-                     code="""
-                          double coef_tmp;
-                          coef_tmp = 1.0;
-                          for (int p_id = 0; p_id<pass_n; p_id++)
-                          {
-                            if (patt(p_id) == 1)
-                               coef_tmp *= E_x(p_id);
-                          }
-                          return_val = coef_tmp;
-                          """
-                     dict['coef'][index]+=scipy.weave.inline(code,
-                                                       ['patt','E_x','pass_n'],
-                                                       type_converters=converters.blitz,
-                                                       compiler = 'gcc')
-#                    dict['coef'][index] += coef_tmp
+#                 for index in range(2**pass_n):
+#  #                    coef_tmp = np.prod(E_x**dict['pattern'][index])
+#                      patt = dict['pattern'][index]
+#                      code="""
+#                           double coef_tmp;
+#                           coef_tmp = 1.0;
+#                           for (int p_id = 0; p_id<pass_n; p_id++)
+#                           {
+#                             if (patt(p_id) == 1)
+#                                coef_tmp *= E_x(p_id);
+#                           }
+#                           return_val = coef_tmp;
+#                           """
+#                      dict['coef'][index]+=scipy.weave.inline(code,
+#                                                        ['patt','E_x','pass_n'],
+#                                                        type_converters=converters.blitz,
+#                                                        compiler = 'gcc')
+# #                    dict['coef'][index] += 1
+            dict['coef'][0] = (factorial(num) / (factorial(pass_n)*factorial(num-pass_n)))
             print dict
 
 
             for index in range(2**pass_n):
-                tmp = np.matrix(np.eye(self.N,dtype = complex))
+                tmp = np.matrix(np.identity(self.N,dtype = complex))
                 print dict['pattern'][index]
                 for p_id in range(pass_n):
                     if dict['pattern'][index][p_id] == 1:
@@ -130,10 +132,10 @@ class Solver(object):
                         tmp = np.dot(Hs,tmp)
                 tmp_0 = tmp*dict['coef'][index]
                 print 'average :', self.sum_matrix(tmp_0)
-#                print tmp_0
                 result = tmp_0 + result
-        result = np.matrix(np.eye(self.N,dtype = complex))+result
-        print result
+        result = np.matrix(np.identity(self.N,dtype = complex))+result
+        print "test"
+        print np.dot(Hs,np.dot(Hs,Hs))
         return result
 
         # simple version, slow. Not accurate.
@@ -150,7 +152,7 @@ class Solver(object):
         return sum/(self.N**2)
 
     def build_matrix_dict(self,n):
-        if n > 10:
+        if n > 20:
             print 'n to big'
             raise ValueError
         dict = {}

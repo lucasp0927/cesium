@@ -20,11 +20,18 @@ if __name__ == '__main__':
         print(tmp)
     '''
     para = {}
+    # para['Tr'] = 1.0/91.9262177e6
+    # para['mu_c'] = 351.72571850e12
+    # para['PSI'] = 3.0/4.0*2.0*np.pi
+    # para['E_0'] = 1.0
+    # para['tao'] = 3e-14
+
     para['Tr'] = 1.0/91.9262177e6
     para['mu_c'] = 351.72571850e12
     para['PSI'] = 3.0/4.0*2.0*np.pi
-    para['E_0'] = 1.0
+    para['E_0'] = 0.0
     para['tao'] = 3e-14
+    
     EF = Electricfield(para)
     print 'period is ',EF.period
     print 'zero_segment ',EF.zero_segment
@@ -35,7 +42,12 @@ if __name__ == '__main__':
     dictf.close()    
     S = Solver(parameter,EF)
     print S.build_matrix_dict(3)
-    S.calculate_matrix_electric(0)
+    A = S.calculate_matrix_electric(0)
+    print 'middle'
+    print A
+    print 'start'
+    print S.no_field_matrix()
+    print S.matrix_static
     # print S.build_matrix_dict(1)    
     #print np.matrix(S.matrix_static)
 #    print np.matrix(S.matrix_total)
