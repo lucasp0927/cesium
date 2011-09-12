@@ -20,34 +20,56 @@ if __name__ == '__main__':
             tmp += ' %d,%d ' %(S.reverse_index(A[i][j]))
         print(tmp)
     '''
+    
+    """
+    Set numpy printing setting
+    """
+    # np.set_printoptions(precision = 1)   # print np array for human reading 
+    # #np.set_printoptions(suppress=True)  
+    # np.set_printoptions(linewidth= 200)
+
+    """
+    stuff for initialization of solver object.
+    """
     para = {}
     # para['Tr'] = 1.0/91.9262177e6
     # para['mu_c'] = 351.72571850e12
     # para['PSI'] = 3.0/4.0*2.0*np.pi
     # para['E_0'] = 1.0
     # para['tao'] = 3e-14
-    
 
-    np.set_printoptions(precision = 1)   # print np array for human reading 
-    #np.set_printoptions(suppress=True)  
-    np.set_printoptions(linewidth= 200)
     
     para['Tr'] = 1.0/91.9262177e6
     para['mu_c'] = 351.72571850e12
     para['PSI'] = 3.0/4.0*2.0*np.pi
-    para['E_0'] = 0.0
+    para['E_0'] = 1.0
     para['tao'] = 3e-14
+
     
     EF = Electricfield(para)
-    print '---INFORMATION OF PARAMETERS---'
+
+    print '---INFORMATION OF ELECTRICFIELD---'
     print 'period is ',EF.period
+    print 'total time is ',EF.total_time
     print 'zero_segment ',EF.zero_segment
     print 'wave in packet', para['mu_c']*EF.time_no_field*2
-    print '---END---'
+    print '---END---\n\n'
+    
     file_in = 'setting/three_level.txt'
     dictf = open(file_in,'r')
     parameter = eval(dictf.read())
     dictf.close()
+
+    initial_state = np.zeros(parameter['n']**2,dtype = complex)
+    initial_state[0] = 1.0+0j
+
+    def new_test():
+        S = Solver(parameter,EF,initial_state,1e-3)
+        print 'going to simulate',S.total_period(),'total periods.'
+        S.main_control()
+
+    new_test()
+
 
     
     def test1():
@@ -76,7 +98,7 @@ if __name__ == '__main__':
         print "\n---CORRECT ANSWER---"
         print S.no_field_matrix()-np.identity(S.N,dtype = complex)
         
-    test2()
+
     # print S.build_matrix_dict(1)    
     #print np.matrix(S.matrix_static)
 #    print np.matrix(S.matrix_total)

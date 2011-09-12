@@ -2,6 +2,7 @@
 from __future__ import division
 import numpy as np
 from electricfield import Electricfield
+from desolver import DESolver
 from constant import *
 from scipy.linalg.matfuncs import *
 from scipy.weave import converters
@@ -12,10 +13,12 @@ class Solver(object):
     """
     """
 
-    def __init__(self,parameter,electric_field):
+    def __init__(self,parameter,electric_field,initial_state,end_time):
         """
         """
-        print 'initializing...'
+        self.end_time = end_time
+        print 'SOLVER INITIALIZE'
+        print '   initializing...'
         self.EF = electric_field
         self.n = parameter['n'] #number of state
         self.dipole = parameter['dipole']
@@ -27,18 +30,50 @@ class Solver(object):
         self.matrix_electric = np.zeros([self.N,self.N],dtype = complex)
         self.matrix_total = np.identity(self.N,dtype = complex)
 
-
-        print 'static part...'
+        if initial_state.size != self.N:
+            raise ValueError('wrong initial state size')
+        #may add normalize check here
+        self.initial_state = np.matrix(initial_state).transpose()
+        self.current_state = self.initial_state
+        
+        print '   static part...'
         self.decoherence()
         self.diagonal_h()
-        print 'dipole....'
+        print '   dipole....'
         self.matrix_dipole()
-        #print self.no_field_matrix()
-        print 'calculate total matrix...'
-        #self.calculate_period()
-        #self.calculate_matrix_electric(0)
+        print '   calculate no field matrix...'
+        self.matrix_no_field = self.no_field_matrix()
+        print '   initialize DE solver...'
+        self.desolver = DESolver(self.EF,step = 10000)
+        print '\n\n'
 
-    def calculate_period(self):
+    def total_period(self):
+        return int(np.round(self.end_time/self.EF.total_time))
+
+
+    def time_differ(self,E,state):
+        return np.dot((matrix_electric*E+matrix_static),state)
+        
+    def main_control(self):
+        time = 0.0
+        for counter in xrange(self.total_period()):
+            for period in xrange(self.EF.period):
+                self.calculate_period(period)
+            time += self.EF.total_time
+        print 'total time is ',time
+        
+    def calculate_period(self,n):
+        self.current_state = np.dot(self.matrix_no_field,self.current_state)
+        """
+        pulse part here
+        """
+        self.calculate_pulse(n)
+        self.current_state = np.dot(self.matrix_no_field,self.current_state)
+        
+    def calculate_pulse(self,n):
+        pass
+    
+    def calculate_period_old(self):
         matrix_nofield = self.no_field_matrix()
         ##DEBUG
         #matrix_nofield = np.matrix(np.eye(self.N,dtype = complex))
@@ -168,12 +203,6 @@ class Solver(object):
             dict['pattern'][i] = tmp
         return dict
 
-    def count_one(self,s):
-        counter = 0
-        for i in s:
-            if i == '1':
-                counter += 1
-        return counter
 
     def perm(self,n,start,end):
         #return array of permutation of start to end - 1
@@ -235,6 +264,9 @@ class Solver(object):
                 self.matrix_static[self.index(i,j)][self.index(i,j)]+=(self.omega[i]-self.omega[j])*(-1j)
 
     def matrix_dipole(self):
+        """
+        need to time the electric field to get real time differential.
+        """
         for i in range(self.n):
             for j in range(self.n):
                 for k in range(self.n):
