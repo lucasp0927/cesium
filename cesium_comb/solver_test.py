@@ -3,6 +3,7 @@ from solver import Solver
 from electricfield import Electricfield
 import numpy as np
 import matplotlib.pyplot as plt
+from math import factorial
 
 if __name__ == '__main__':
     '''
@@ -25,7 +26,12 @@ if __name__ == '__main__':
     # para['PSI'] = 3.0/4.0*2.0*np.pi
     # para['E_0'] = 1.0
     # para['tao'] = 3e-14
+    
 
+    np.set_printoptions(precision = 1)   # print np array for human reading 
+    #np.set_printoptions(suppress=True)  
+    np.set_printoptions(linewidth= 200)
+    
     para['Tr'] = 1.0/91.9262177e6
     para['mu_c'] = 351.72571850e12
     para['PSI'] = 3.0/4.0*2.0*np.pi
@@ -33,21 +39,44 @@ if __name__ == '__main__':
     para['tao'] = 3e-14
     
     EF = Electricfield(para)
+    print '---INFORMATION OF PARAMETERS---'
     print 'period is ',EF.period
     print 'zero_segment ',EF.zero_segment
     print 'wave in packet', para['mu_c']*EF.time_no_field*2
+    print '---END---'
     file_in = 'setting/three_level.txt'
     dictf = open(file_in,'r')
     parameter = eval(dictf.read())
-    dictf.close()    
-    S = Solver(parameter,EF)
-    print S.build_matrix_dict(3)
-    A = S.calculate_matrix_electric(0)
-    print 'middle'
-    print A
-    print 'start'
-    print S.no_field_matrix()
-    print S.matrix_static
+    dictf.close()
+
+    
+    def test1():
+        S = Solver(parameter,EF)
+        print S.build_matrix_dict(3)
+        A = S.calculate_matrix_electric(0)
+        print 'middle'
+        print A
+        print 'start'
+        print S.no_field_matrix()
+        print S.matrix_static
+
+    def test2():
+        S = Solver(parameter,EF)
+        dt = 2.0*S.EF.time_no_field
+
+        Hs =  np.matrix(S.matrix_static*dt)
+        result = Hs
+        print np.linalg.eig(Hs)
+        for i in range(2,70):
+            tmp = Hs
+            for j in range(i-1):
+                tmp = np.dot(Hs,tmp)
+            result = np.matrix(result + tmp/float(factorial(i)))
+        print result
+        print "\n---CORRECT ANSWER---"
+        print S.no_field_matrix()-np.identity(S.N,dtype = complex)
+        
+    test2()
     # print S.build_matrix_dict(1)    
     #print np.matrix(S.matrix_static)
 #    print np.matrix(S.matrix_total)

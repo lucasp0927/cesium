@@ -62,7 +62,7 @@ class Solver(object):
         print self.sum_matrix(Hs)
         print self.sum_matrix(He)
         print Hs
-        for pass_n in range(1,3):
+        for pass_n in range(1,2):
 #            tmp = result = np.matrix(np.zeros([self.N,self.N],dtype = complex))
             dict = self.build_matrix_dict(pass_n)
 
