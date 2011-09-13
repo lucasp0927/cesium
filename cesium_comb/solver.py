@@ -278,7 +278,10 @@ class Solver(object):
             return self.dipole[0][j][i]
 
     def no_field_matrix(self):
-        return expm(np.matrix(self.matrix_static)*self.EF.zero_segment)
+        if __debug__ :
+            return np.identity(self.N,dtype = complex)
+        else:
+            return expm(np.matrix(self.matrix_static)*self.EF.zero_segment)
 
 
 

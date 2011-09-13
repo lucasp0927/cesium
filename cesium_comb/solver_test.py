@@ -63,7 +63,7 @@ if __name__ == '__main__':
     dictf.close()
 
     initial_state = np.zeros(parameter['n']**2,dtype = complex)
-    initial_state[0] = 1.0+0j
+    initial_state[0] = 1.0+0.0j
 
     def new_test():
         S = Solver(parameter,EF,initial_state,1e-3)
