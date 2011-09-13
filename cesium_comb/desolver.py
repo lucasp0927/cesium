@@ -41,7 +41,7 @@ class DESolver(object):
 	blitz::Array<std::complex<double>,2> temp_current(N,1);	    	    
 	for (int i = 0; i < step;i += 2)
 	{
-	        printf("   %d \\n",i);
+//	        printf("   %d \\n",i);
 		temp = matrix_electric*E_arr(period,i)+matrix_static;
 		k1 = sum(temp(blitz::tensor::i,blitz::tensor::k)*current(blitz::tensor::k,blitz::tensor::j),blitz::tensor::k)*dt;
 		temp = matrix_electric*E_arr(period,i+1)+matrix_static;
