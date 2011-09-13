@@ -44,7 +44,7 @@ class Solver(object):
         print '   calculate no field matrix...'
         self.matrix_no_field = self.no_field_matrix()
         print '   initialize DE solver...'
-        self.desolver = DESolver(self.EF,step = 10000)
+        self.desolver = DESolver(efield = self.EF,step = 10000,matrix_static = self.matrix_static,matrix_electric = self.matrix_electric)
         print '\n\n'
 
     def total_period(self):
@@ -60,18 +60,16 @@ class Solver(object):
             for period in xrange(self.EF.period):
                 self.calculate_period(period)
             time += self.EF.total_time
+            print counter
         print 'total time is ',time
         
     def calculate_period(self,n):
         self.current_state = np.dot(self.matrix_no_field,self.current_state)
-        """
-        pulse part here
-        """
-        self.calculate_pulse(n)
+        self.current_state = self.desolver.solve(self.current_state,n)
         self.current_state = np.dot(self.matrix_no_field,self.current_state)
         
-    def calculate_pulse(self,n):
-        pass
+
+        
     
     def calculate_period_old(self):
         matrix_nofield = self.no_field_matrix()

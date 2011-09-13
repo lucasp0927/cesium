@@ -55,7 +55,9 @@ if __name__ == '__main__':
     print 'wave in packet', para['mu_c']*EF.time_no_field*2
     print '---END---\n\n'
     
-    file_in = 'setting/three_level.txt'
+#    file_in = 'setting/three_level.txt'
+    file_in = 'setting/d1_2.txt'
+    
     dictf = open(file_in,'r')
     parameter = eval(dictf.read())
     dictf.close()
