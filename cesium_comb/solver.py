@@ -45,6 +45,7 @@ class Solver(object):
         self.matrix_no_field = self.no_field_matrix()
         print '   initialize DE solver...'
         self.desolver = DESolver(efield = self.EF,step = 100,matrix_static = self.matrix_static,matrix_electric = self.matrix_electric)
+        print '   initialize DE solver (matrix version)...'
         print '\n\n'
 
     def total_period(self):

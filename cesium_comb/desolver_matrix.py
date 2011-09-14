@@ -5,7 +5,7 @@ from electricfield import Electricfield
 from scipy.weave import converters
 import scipy
 
-class DESolver(object):
+class DESolver_matrix(object):
     """
     """
     def __init__(self,efield,step,matrix_static,matrix_electric):
@@ -22,7 +22,6 @@ class DESolver(object):
             self.E_arr.append([self.EF.comb_field(self.t_arr[i],period) for i in xrange(self.fine_step+1)])
 
     def solve(self, initial_state, period):
-        # t_d =  np.dot((self.matrix_electric*E+self.matrix_static),state)
         current = np.array(initial_state)
 	N = current.size
 	E_arr = np.array(self.E_arr)
@@ -41,7 +40,7 @@ class DESolver(object):
 	blitz::Array<std::complex<double>,2> temp_current(N,1);	    	    
 	for (int i = 0; i < step;i += 2)
 	{
-	        printf("   %d \\n",i);
+//	        printf("   %d \\n",i);
 		temp = matrix_electric*E_arr(period,i)+matrix_static;
 		k1 = sum(temp(blitz::tensor::i,blitz::tensor::k)*current(blitz::tensor::k,blitz::tensor::j),blitz::tensor::k)*dt;
 		temp = matrix_electric*E_arr(period,i+1)+matrix_static;
