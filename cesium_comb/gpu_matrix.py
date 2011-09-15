@@ -94,8 +94,9 @@ class GPU_Matrix(object):
           // each thread writes one element
           const uint c = wB * %(BLOCK_SIZE)s * by + %(BLOCK_SIZE)s * bx;
           E[c + wB * ty + tx] = Esub;
-          F[c + wB * ty + tx] = Fsub;  
+          F[c + wB * ty + tx] = Fsub;
         }
+        
         """
         # get the kernel code from the template 
         # by specifying the constants MATRIX_SIZE and BLOCK_SIZE
@@ -111,7 +112,7 @@ class GPU_Matrix(object):
         self.matrixmul = mod.get_function("MatrixMulKernel")
 
 
-    def matrix_mul(self,Ar,Ai,Br,Bi):
+    def matrix_mul(self,Ar,Ai,Br,Bi,Cr,Ci):
         a_gpu = gpuarray.to_gpu(Ar)
         b_gpu = gpuarray.to_gpu(Ai)
         c_gpu = gpuarray.to_gpu(Br) 
@@ -129,4 +130,4 @@ class GPU_Matrix(object):
             # block of multiple threads
             block = (self.TILE_SIZE, self.TILE_SIZE, 1), 
             )
-        return e_gpu.get(),f_gpu.get()
+        return e_gpu.get(Cr),f_gpu.get(Ci)

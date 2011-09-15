@@ -23,8 +23,8 @@ class DESolver_matrix(object):
         self.E_arr = []
         for period in range(self.EF.period):
             self.E_arr.append([self.EF.comb_field(self.t_arr[i],period) for i in xrange(self.fine_step+1)])
-	self.MATRIX_SIZE = MATRIX_SIZE
-	self.gpu = GPU_Matrix(self.MATRIX_SIZE)
+	self.N = MATRIX_SIZE
+	self.gpu = GPU_Matrix(self.N)
 	    
     def solve(self, period,N):
 	resultr = np.identity(N,dtype = np.float64)
@@ -38,23 +38,30 @@ class DESolver_matrix(object):
 	Hsr = self.matrix_static.real
 	Hsi = self.matrix_static.imag
 	#python version
+	k2r = np.zeros([self.N,self.N],dtype = np.float64)
+	k2i = np.zeros([self.N,self.N],dtype = np.float64)
+	k3r = np.zeros([self.N,self.N],dtype = np.float64)
+	k3i = np.zeros([self.N,self.N],dtype = np.float64)
+	k4r = np.zeros([self.N,self.N],dtype = np.float64)
+	k4i = np.zeros([self.N,self.N],dtype = np.float64)			
         for i in xrange(0,self.fine_step,2):
 	    print i
+	    t = time.time()
 	    k1r = (Her*self.E_arr[period][i] + Hsr)*self.dt
 	    k1i = (Hei*self.E_arr[period][i] + Hsi)*self.dt
 	    tmpr = Her*self.E_arr[period][i+1]+Hsr
 	    tmpi = Hei*self.E_arr[period][i+1]+Hsi
-            k2r,k2i =  self.gpu.matrix_mul(tmpr,tmpi,I+k1r*0.5,k1i*0.5)
+            self.gpu.matrix_mul(tmpr,tmpi,I+k1r*0.5,k1i*0.5,k2r,k2i)
 	    k2r *= self.dt
 	    k2i *= self.dt
-            k3r,k3i =  self.gpu.matrix_mul(tmpr,tmpi,I+k2r*0.5,k2i*0.5)
+            self.gpu.matrix_mul(tmpr,tmpi,I+k2r*0.5,k2i*0.5,k3r,k3i)
 	    k3r *= self.dt
 	    k3i *= self.dt	    
-            k4r,k4i =  self.gpu.matrix_mul((Her*self.E_arr[period][i+2]+Hsr),(Hei*self.E_arr[period][i+2]+Hsi),I+k3r,k3i)
+            self.gpu.matrix_mul((Her*self.E_arr[period][i+2]+Hsr),(Hei*self.E_arr[period][i+2]+Hsi),I+k3r,k3i,k4r,k4i)
 	    k4r *= self.dt
 	    k4i *= self.dt	    
-	    resultr,resulti = self.gpu.matrix_mul(I+1.0/6.0*(k1r+2.0*k2r+2.0*k3r+k4r),1.0/6.0*(k1i+2.0*k2i+2.0*k3i+k4i),resultr,resulti)
-
+	    self.gpu.matrix_mul(I+1.0/6.0*(k1r+2.0*k2r+2.0*k3r+k4r),1.0/6.0*(k1i+2.0*k2i+2.0*k3i+k4i),resultr,resulti,resultr,resulti)
+	    print time.time() - t
         return resultr + resulti*1j
 
 
