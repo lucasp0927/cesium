@@ -112,13 +112,13 @@ class GPU_Matrix(object):
         self.matrixmul = mod.get_function("MatrixMulKernel")
 
 
-    def matrix_mul(self,Ar,Ai,Br,Bi,Cr,Ci):
-        a_gpu = gpuarray.to_gpu(Ar)
-        b_gpu = gpuarray.to_gpu(Ai)
-        c_gpu = gpuarray.to_gpu(Br) 
-        d_gpu = gpuarray.to_gpu(Bi)
-        e_gpu = gpuarray.empty((self.MATRIX_SIZE, self.MATRIX_SIZE), np.float64)
-        f_gpu = gpuarray.empty((self.MATRIX_SIZE, self.MATRIX_SIZE), np.float64)
+    def matrix_mul(self,a_gpu,b_gpu,c_gpu,d_gpu,e_gpu,f_gpu):
+        # a_gpu = gpuarray.to_gpu(Ar)
+        # b_gpu = gpuarray.to_gpu(Ai)
+        # c_gpu = gpuarray.to_gpu(Br) 
+        # d_gpu = gpuarray.to_gpu(Bi)
+        # e_gpu = gpuarray.empty((self.MATRIX_SIZE, self.MATRIX_SIZE), np.float64)
+        # f_gpu = gpuarray.empty((self.MATRIX_SIZE, self.MATRIX_SIZE), np.float64)
 
         self.matrixmul(
             # inputs
@@ -130,4 +130,4 @@ class GPU_Matrix(object):
             # block of multiple threads
             block = (self.TILE_SIZE, self.TILE_SIZE, 1), 
             )
-        return e_gpu.get(Cr),f_gpu.get(Ci)
+#        return e_gpu.get(Cr),f_gpu.get(Ci)
