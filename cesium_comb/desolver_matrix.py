@@ -1,14 +1,17 @@
 #!/usr/bin/python2
-from __future__ import division
 import numpy as np
 from electricfield import Electricfield
 from scipy.weave import converters
+from gpu_matrix import GPU_Matrix
 import scipy
+import time
+from pycuda import driver, compiler, gpuarray, tools
+import pycuda.autoinit
 
 class DESolver_matrix(object):
     """
     """
-    def __init__(self,efield,step,matrix_static,matrix_electric):
+    def __init__(self,efield,step,matrix_static,matrix_electric,MATRIX_SIZE):
         self.EF = efield
         self.step = step
         self.matrix_static = np.array(matrix_static)
@@ -20,54 +23,140 @@ class DESolver_matrix(object):
         self.E_arr = []
         for period in range(self.EF.period):
             self.E_arr.append([self.EF.comb_field(self.t_arr[i],period) for i in xrange(self.fine_step+1)])
+	self.MATRIX_SIZE = MATRIX_SIZE
+	self.gpu = GPU_Matrix(self.MATRIX_SIZE)
+	    
+    def solve(self, period,N):
+	resultr = np.identity(N,dtype = np.float64)
+	resulti = np.zeros([N,N],dtype = np.float64)	
+	I = np.identity(N,dtype = np.float64)	
+	# E_arr = np.array(self.E_arr)
+	# matrix_electric = self.matrix_electric
+	# matrix_static = self.matrix_static
+	Her = self.matrix_electric.real
+	Hei = self.matrix_electric.imag
+	Hsr = self.matrix_static.real
+	Hsi = self.matrix_static.imag
+	#python version
+        for i in xrange(0,self.fine_step,2):
+	    print i
+	    k1r = (Her*self.E_arr[period][i] + Hsr)*self.dt
+	    k1i = (Hei*self.E_arr[period][i] + Hsi)*self.dt
+	    tmpr = Her*self.E_arr[period][i+1]+Hsr
+	    tmpi = Hei*self.E_arr[period][i+1]+Hsi
+            k2r,k2i =  self.gpu.matrix_mul(tmpr,tmpi,I+k1r*0.5,k1i*0.5)
+	    k2r *= self.dt
+	    k2i *= self.dt
+            k3r,k3i =  self.gpu.matrix_mul(tmpr,tmpi,I+k2r*0.5,k2i*0.5)
+	    k3r *= self.dt
+	    k3i *= self.dt	    
+            k4r,k4i =  self.gpu.matrix_mul((Her*self.E_arr[period][i+2]+Hsr),(Hei*self.E_arr[period][i+2]+Hsi),I+k3r,k3i)
+	    k4r *= self.dt
+	    k4i *= self.dt	    
+	    resultr,resulti = self.gpu.matrix_mul(I+1.0/6.0*(k1r+2.0*k2r+2.0*k3r+k4r),1.0/6.0*(k1i+2.0*k2i+2.0*k3i+k4i),resultr,resulti)
 
-    def solve(self, initial_state, period):
-        current = np.array(initial_state)
-	N = current.size
-	E_arr = np.array(self.E_arr)
-	matrix_electric = self.matrix_electric
-	matrix_static = self.matrix_static
-	test = np.ones([2,2],dtype = complex)*2.0
-	step = self.fine_step
-	dt = float(self.dt)
-	
-	code = """
-	blitz::Array<std::complex<double>,2> k1(N,1);
-	blitz::Array<std::complex<double>,2> k2(N,1);
-	blitz::Array<std::complex<double>,2> k3(N,1);
-	blitz::Array<std::complex<double>,2> k4(N,1);
-	blitz::Array<std::complex<double>,2> temp(N,N);
-	blitz::Array<std::complex<double>,2> temp_current(N,1);	    	    
-	for (int i = 0; i < step;i += 2)
-	{
-//	        printf("   %d \\n",i);
-		temp = matrix_electric*E_arr(period,i)+matrix_static;
-		k1 = sum(temp(blitz::tensor::i,blitz::tensor::k)*current(blitz::tensor::k,blitz::tensor::j),blitz::tensor::k)*dt;
-		temp = matrix_electric*E_arr(period,i+1)+matrix_static;
-		temp_current = current + k1*0.5;
-		k2 = sum(temp(blitz::tensor::i,blitz::tensor::k)*temp_current(blitz::tensor::k,blitz::tensor::j),blitz::tensor::k)*dt;
-		temp_current = current + k2*0.5;		
-		k3 = sum(temp(blitz::tensor::i,blitz::tensor::k)*temp_current(blitz::tensor::k,blitz::tensor::j),blitz::tensor::k)*dt;
-		temp = matrix_electric*E_arr(period,i+2)+matrix_static;
-		temp_current = current + k3;		
-		k4 = sum(temp(blitz::tensor::i,blitz::tensor::k)*temp_current(blitz::tensor::k,blitz::tensor::j),blitz::tensor::k)*dt;
-		current = current + 1.0/6.0*(k1+k2*2.0+k3*2.0+k4);
-	}
+        return resultr + resulti*1j
 
 
-	"""	    
-    	scipy.weave.inline(code,
-    			   ['step','N','period','current','matrix_electric','matrix_static','E_arr','test','dt'],
-    #		       support_code = support_code,
-    			   type_converters=converters.blitz,
-			   compiler = 'gcc',
-			   extra_compile_args = ["-O3"])
-	# python version
         # for i in xrange(0,self.fine_step,2):
+	#     t = time.time()
 	#     print i
-        #     k1 =  np.dot((self.matrix_electric*self.E_arr[period][i]+self.matrix_static),current)*self.dt
-        #     k2 =  np.dot((self.matrix_electric*self.E_arr[period][i+1]+self.matrix_static),current+k1*0.5)*self.dt
-        #     k3 =  np.dot((self.matrix_electric*self.E_arr[period][i+1]+self.matrix_static),current+k2*0.5)*self.dt
-        #     k4 =  np.dot((self.matrix_electric*self.E_arr[period][i+2]+self.matrix_static),current+k3)*self.dt                         
-        #     current = current + 1.0/6.0* (k1+2.0*k2+2.0*k3+k4)
-        return current
+        #     k1 =  (self.*self.E_arr[period][i]+self.matrix_static)*self.dt
+        #     k2 =  self.gpu.matrix_mul((self.matrix_electric*self.E_arr[period][i+1]+self.matrix_static),I+k1*0.5)*self.dt
+        #     k3 =  self.gpu.matrix_mul((self.matrix_electric*self.E_arr[period][i+1]+self.matrix_static),I+k2*0.5)*self.dt
+        #     k4 =  self.gpu.matrix_mul((self.matrix_electric*self.E_arr[period][i+2]+self.matrix_static),I+k3)*self.dt
+	#     result = self.gpu.matrix_mul(I+1.0/6.0*(k1+2.0*k2+2.0*k3+k4),result)
+	#     print time.time() - t
+        # return result
+		
+# 	test = np.ones([2,2],dtype = complex)*2.0
+# 	step = self.fine_step
+# 	dt = float(self.dt)
+# 	support_code = """
+# 		static inline void matrix_matrix_product(const  blitz::Array<std::complex<double>,2> & A, const blitz::Array<std::complex<double>,2> & B, blitz::Array<std::complex<double>,2>  & X, int N)
+# 		{
+#                 std::complex<double>  somme;
+#                 for (int i=0;i < N;i++){
+#                     for (int j=0;j < N;j++){
+#                    	somme=0.0;
+#                        	for (int k=0;k < N;k++){
+#                        	  somme += A(i,k)*B(k,j);
+#                             	}
+#                          	X(i,j)=somme;
+# 			   }
+#                        }
+#                  }
+# 		       """
+# 	code_old = """
+# 	typedef blitz::Array<std::complex<double>,2> complex_array;
+# 	complex_array k1(N,N);
+# 	complex_array k2(N,N);
+# 	complex_array k3(N,N);
+# 	complex_array k4(N,N);
+# 	complex_array temp(N,N);
+# 	complex_array temp_current(N,N);
+# 	complex_array temp_result(N,N);	    	    			   
+# 	for (int i = 0; i < step;i += 2)
+# 	{
+# 	        printf("   %d \\n",i);
+# 		printf("   %s \\n", "k1");
+# 		k1 = (matrix_electric*E_arr(period,i)+matrix_static)*dt;
+# 		temp = matrix_electric*E_arr(period,i+1)+matrix_static;
+# 		temp_current = I+k1*0.5;
+# 		printf("   %s \\n", "k2");
+# 		matrix_matrix_product(temp,temp_current,k2,N);
+# 		k2 = k2*dt;
+# 		temp_current = I + k2*0.5;
+# 		printf("   %s \\n", "k3");
+# 		matrix_matrix_product(temp,temp_current,k3,N);
+# 		k3 = k3*dt;
+# 		temp = matrix_electric*E_arr(period,i+2)+matrix_static;
+# 		temp_current = I + k3;
+# 		printf("   %s \\n", "k4");
+# 		matrix_matrix_product(temp,temp_current,k3,N);
+# 		k3 = k3*dt;				     
+# 		temp_current = I+1.0/6.0*(k1+2.0*k2+2.0*k3+k4);
+# 		printf("   %s \\n", "result");
+# 		matrix_matrix_product(temp_current,result,temp_result,N);				     
+# 		printf("   %s \\n", "copy result");		
+# 		result = temp_result;
+# 	}
+
+
+# 	"""
+
+# 	code = """
+# 	typedef blitz::Array<std::complex<double>,2> complex_array;
+# 	complex_array k1(N,N);
+# 	complex_array k2(N,N);
+# 	complex_array k3(N,N);
+# 	complex_array k4(N,N);
+# 	complex_array temp(N,N);
+# 	complex_array temp_current(N,N);
+# 	complex_array temp_result(N,N);	    	    	
+# 	for (int i = 0; i < step;i += 2)
+# 	{
+# 	        printf("   %d \\n",i);
+# 		k1 = (matrix_electric*E_arr(period,i)+matrix_static)*dt;
+# 		temp = matrix_electric*E_arr(period,i+1)+matrix_static;
+# 		temp_current = I+k1*0.5;
+# 		k2 = sum(temp(blitz::tensor::i,blitz::tensor::k)*temp_current(blitz::tensor::k,blitz::tensor::j),blitz::tensor::k)*dt;
+# 		temp_current = I + k2*0.5;
+# 		k3 = sum(temp(blitz::tensor::i,blitz::tensor::k)*temp_current(blitz::tensor::k,blitz::tensor::j),blitz::tensor::k)*dt;
+# 		temp = matrix_electric*E_arr(period,i+2)+matrix_static;
+# 		temp_current = I + k3;
+# 		k4 = sum(temp(blitz::tensor::i,blitz::tensor::k)*temp_current(blitz::tensor::k,blitz::tensor::j),blitz::tensor::k)*dt;
+# 		temp_current = I+1.0/6.0*(k1+2.0*k2+2.0*k3+k4);
+# 		temp_result = sum(temp_current(blitz::tensor::i,blitz::tensor::k)*result(blitz::tensor::k,blitz::tensor::j),blitz::tensor::k);
+# 		result = temp_result;
+# }
+
+
+# 	"""	    	
+#     	# scipy.weave.inline(code,
+#     	# 		   ['step','N','period','result','I','matrix_electric','matrix_static','E_arr','test','dt'],
+# 	# #		   support_code = support_code,
+#     	# 		   type_converters=converters.blitz,
+# 	# 		   compiler = 'gcc')
+# 	# #		   extra_compile_args = ["-O3"])
+

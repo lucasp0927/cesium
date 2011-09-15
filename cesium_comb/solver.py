@@ -3,6 +3,7 @@ from __future__ import division
 import numpy as np
 from electricfield import Electricfield
 from desolver import DESolver
+from desolver_matrix import DESolver_matrix
 from constant import *
 from scipy.linalg.matfuncs import *
 from scipy.weave import converters
@@ -44,8 +45,9 @@ class Solver(object):
         print '   calculate no field matrix...'
         self.matrix_no_field = self.no_field_matrix()
         print '   initialize DE solver...'
-        self.desolver = DESolver(efield = self.EF,step = 100,matrix_static = self.matrix_static,matrix_electric = self.matrix_electric)
+        self.desolver = DESolver(efield = self.EF,step = 10000,matrix_static = self.matrix_static,matrix_electric = self.matrix_electric)
         print '   initialize DE solver (matrix version)...'
+        self.desolver_matrix = DESolver_matrix(efield = self.EF,step = 10000,matrix_static = self.matrix_static,matrix_electric = self.matrix_electric,MATRIX_SIZE = self.N)        
         print '\n\n'
 
     def total_period(self):
@@ -54,6 +56,15 @@ class Solver(object):
 
     def time_differ(self,E,state):
         return np.dot((matrix_electric*E+matrix_static),state)
+
+    def main_control_matrix(self):
+        #prepare period matrix
+        print 'prepare period matrix'
+        period_matrix = []
+        for n in range(self.EF.period):
+            print 'calculate period %d'%(n)
+            period_matrix.append(self.desolver_matrix.solve(n,self.N))
+        #calculate
         
     def main_control(self):
         time = 0.0

@@ -68,7 +68,8 @@ if __name__ == '__main__':
     def new_test():
         S = Solver(parameter,EF,initial_state,1e-3)
         print 'going to simulate',S.total_period(),'total periods.'
-        S.main_control()
+#        S.main_control()
+        S.main_control_matrix()
 
     new_test()
 
