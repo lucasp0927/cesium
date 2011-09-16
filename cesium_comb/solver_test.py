@@ -24,9 +24,9 @@ if __name__ == '__main__':
     """
     Set numpy printing setting
     """
-    # np.set_printoptions(precision = 1)   # print np array for human reading 
+    np.set_printoptions(precision = 2)   # print np array for human reading 
     # #np.set_printoptions(suppress=True)  
-    # np.set_printoptions(linewidth= 200)
+    np.set_printoptions(linewidth= 200)
 
     """
     stuff for initialization of solver object.
@@ -39,10 +39,12 @@ if __name__ == '__main__':
     # para['tao'] = 3e-14
 
     
-    para['Tr'] = 1.0/91.9262177e6
+#    para['Tr'] = 1.0/91.9262177e6
+    para['Tr'] = 1.0/91.9262177e12
     para['mu_c'] = 351.72571850e12
-    para['PSI'] = 3.0/4.0*2.0*np.pi
-    para['E_0'] = 1.0
+#    para['PSI'] = 3.0/4.0*2.0*np.pi
+    para['PSI'] = 2.0*np.pi
+    para['E_0'] = 0.0
     para['tao'] = 3e-14
 
     
@@ -56,7 +58,7 @@ if __name__ == '__main__':
     print '---END---\n\n'
     
 #    file_in = 'setting/three_level.txt'
-    file_in = 'setting/d1_2.txt'
+    file_in = 'setting/d2_2.txt'
     
     dictf = open(file_in,'r')
     parameter = eval(dictf.read())
@@ -70,7 +72,14 @@ if __name__ == '__main__':
         print 'going to simulate',S.total_period(),'total periods.'
 #        S.main_control()
         S.main_control_matrix()
-
+        print 'CPU'
+        print S.matrix_no_field
+        print 'GPU'        
+        print S.period_matrix[0]
+        print S.EF.zero_segment
+        print S.EF.time_no_field *2.0
+        print np.linalg.norm(S.period_matrix[0]- S.matrix_no_field)        
+        
     new_test()
 
 

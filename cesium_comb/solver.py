@@ -30,24 +30,24 @@ class Solver(object):
         self.matrix_static = np.zeros([self.N,self.N],dtype = complex)#diagonal + decoherence
         self.matrix_electric = np.zeros([self.N,self.N],dtype = complex)
         self.matrix_total = np.identity(self.N,dtype = complex)
-
+        self.period_matrix = []
         if initial_state.size != self.N:
             raise ValueError('wrong initial state size')
         #may add normalize check here
         self.initial_state = np.matrix(initial_state).transpose()
         self.current_state = self.initial_state
-        
+
         print '   static part...'
         self.decoherence()
         self.diagonal_h()
         print '   dipole....'
         self.matrix_dipole()
         print '   calculate no field matrix...'
-        self.matrix_no_field = self.no_field_matrix()
+#        self.matrix_no_field = self.no_field_matrix()
         print '   initialize DE solver...'
         self.desolver = DESolver(efield = self.EF,step = 10000,matrix_static = self.matrix_static,matrix_electric = self.matrix_electric)
         print '   initialize DE solver (matrix version)...'
-        self.desolver_matrix = DESolver_matrix(efield = self.EF,step = 10000,matrix_static = self.matrix_static,matrix_electric = self.matrix_electric,MATRIX_SIZE = self.N)        
+        self.desolver_matrix = DESolver_matrix(efield = self.EF,step = 10000,matrix_static = self.matrix_static,matrix_electric = self.matrix_electric,MATRIX_SIZE = self.N,order = 5)
         print '\n\n'
 
     def total_period(self):
@@ -60,12 +60,11 @@ class Solver(object):
     def main_control_matrix(self):
         #prepare period matrix
         print 'prepare period matrix'
-        period_matrix = []
         for n in range(self.EF.period):
             print 'calculate period %d'%(n)
-            period_matrix.append(self.desolver_matrix.solve(n,self.N))
+            self.period_matrix.append(self.desolver_matrix.solve(n,self.N))
         #calculate
-        
+
     def main_control(self):
         time = 0.0
         for counter in xrange(self.total_period()):
@@ -74,15 +73,15 @@ class Solver(object):
             time += self.EF.total_time
             print counter
         print 'total time is ',time
-        
+
     def calculate_period(self,n):
         self.current_state = np.dot(self.matrix_no_field,self.current_state)
         self.current_state = self.desolver.solve(self.current_state,n)
         self.current_state = np.dot(self.matrix_no_field,self.current_state)
-        
 
-        
-    
+
+
+
     def calculate_period_old(self):
         matrix_nofield = self.no_field_matrix()
         ##DEBUG
@@ -114,7 +113,7 @@ class Solver(object):
             ###This is the slowest part
             c_tmp = 0
             E_x = np.zeros(pass_n)
-            
+
 #             for x in self.perm(pass_n,0,num):
 #                 if c_tmp != x[0]:
 #                     print x[0]
@@ -290,12 +289,7 @@ class Solver(object):
             return self.dipole[0][j][i]
 
     def no_field_matrix(self):
-        if __debug__ :
-            return np.identity(self.N,dtype = complex)
-        else:
             return expm(np.matrix(self.matrix_static)*self.EF.zero_segment)
-
-
 
 if __name__ == '__main__':
     pass
