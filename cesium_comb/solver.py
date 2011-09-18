@@ -43,7 +43,7 @@ class Solver(object):
         print '   dipole....'
         self.matrix_dipole()
         print '   calculate no field matrix...'
-#        self.matrix_no_field = self.no_field_matrix()
+        self.matrix_no_field = self.no_field_matrix()
         print '   initialize DE solver...'
         self.desolver = DESolver(efield = self.EF,step = 10000,matrix_static = self.matrix_static,matrix_electric = self.matrix_electric)
         print '   initialize DE solver (matrix version)...'

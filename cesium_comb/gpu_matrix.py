@@ -22,7 +22,8 @@ class GPU_Matrix(object):
         # define size of blocks and tiles sub-matrix 
         # (we assume that the block size is same as tile size)
         self.TILE_SIZE = 16
-        self.BLOCK_SIZE = self.TILE_SIZE        
+        self.BLOCK_SIZE = self.TILE_SIZE
+#        self.BLOCK_SIZE = 64                
         kernel_code_template = """
         __global__ void MatrixMulKernel(double *A, double *B, double *C, double *D, double *E, double *F)
         {

@@ -185,19 +185,21 @@ class Parameter(object):
                 d2 = self.index2lfm(j)
                 if d1[0:2] == (0,3) and d2[0:2] == (0,3): #ground state
                     if i == j: # diagonal
-                        for q in [-1.0,0.0,1.0]:
-                            ii = int(self.lfm2index(0,4,d1[2]+q))
-                            self.parameter['decoherence_matrix'][ii][ii].append([ii,ii,-1*gamma/3.0])
-                            self.parameter['decoherence_matrix'][ii][ii].append([i,j,gamma/3.0])
-                            self.parameter['decoherence_matrix'][i][j].append([ii,ii,gamma/3.0])
-                            self.parameter['decoherence_matrix'][i][j].append([i,j,-1*gamma/3.0])
-                            self.graph.add_edge(pydot.Edge(self.l0subn[4][int(d1[2]+q+4)],self.l0subn[3][int(d1[2]+3)],label = 'gamma/3'))
+                        for q in range(-4,5):
+                            ii = int(self.lfm2index(0,4,q))
+                            self.parameter['decoherence_matrix'][ii][ii].append([ii,ii,-1*gamma/9.0])
+                            self.parameter['decoherence_matrix'][ii][ii].append([i,j,gamma/9.0])
+                            self.parameter['decoherence_matrix'][i][j].append([ii,ii,gamma/9.0])
+                            self.parameter['decoherence_matrix'][i][j].append([i,j,-1*gamma/9.0])
+#                            self.graph.add_edge(pydot.Edge(self.l0subn[4][int(d1[2]+q+4)],self.l0subn[3][int(d1[2]+3)],label = 'gamma/9'))
                 if d2[0:2] == (0,3):
-                    allow_state = [self.lfm2index(0,4,d2[2]+1),self.lfm2index(0,4,d2[2]+0),self.lfm2index(0,4,d2[2]+-1)]
+                    for q in range(-4,5):
+                        allow_state = []
+                        allow_state.append(self.lfm2index(0,4,q))
 #                    print allow_state ,self.index2lfm(i),self.index2lfm(j)
                     if  i in allow_state:
 #                        print('allowed non diagonal states')
-                        self.parameter['decoherence_matrix'][i][j].append([i,j,-1.0*gamma/3.0])
+                        self.parameter['decoherence_matrix'][i][j].append([i,j,-1.0*gamma/9.0])
         #Gamma
         for pair in self.egpair:
             for i in range(n):

@@ -40,7 +40,7 @@ if __name__ == '__main__':
 
     
 #    para['Tr'] = 1.0/91.9262177e6
-    para['Tr'] = 1.0/91.9262177e12
+    para['Tr'] = 1.0/91.9262177e6
     para['mu_c'] = 351.72571850e12
 #    para['PSI'] = 3.0/4.0*2.0*np.pi
     para['PSI'] = 2.0*np.pi

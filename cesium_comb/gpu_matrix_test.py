@@ -2,7 +2,7 @@
 from gpu_matrix import GPU_Matrix
 import numpy as np
 import time 
-MATRIX_SIZE = 9
+MATRIX_SIZE = 2048
 gpu = GPU_Matrix(MATRIX_SIZE)
 a = np.random.randn(MATRIX_SIZE, MATRIX_SIZE).astype(np.float64)
 b = np.random.randn(MATRIX_SIZE, MATRIX_SIZE).astype(np.float64)
