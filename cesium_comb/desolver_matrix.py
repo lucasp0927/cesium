@@ -2,11 +2,11 @@
 import numpy as np
 from electricfield import Electricfield
 from scipy.weave import converters
-from gpu_matrix import GPU_Matrix
+#from gpu_matrix import GPU_Matrix
 import scipy
 import time
-from pycuda import driver, compiler, gpuarray, tools
-import pycuda.autoinit
+#from pycuda import driver, compiler, gpuarray, tools
+#import pycuda.autoinit
 
 class DESolver_matrix(object):
     """
@@ -43,7 +43,7 @@ class DESolver_matrix(object):
             self.solve = self.solve_5
             
         self.N = MATRIX_SIZE
-        self.gpu = GPU_Matrix(self.N)
+#        self.gpu = GPU_Matrix(self.N)
 
     def solve_4(self, period,N):
         resultr = np.identity(N,dtype = np.float64)

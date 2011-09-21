@@ -2,7 +2,7 @@
 from __future__ import division
 import numpy as np
 from electricfield import Electricfield
-from desolver import DESolver
+#from desolver import DESolver
 from desolver_matrix import DESolver_matrix
 from constant import *
 from scipy.linalg.matfuncs import *
@@ -44,8 +44,8 @@ class Solver(object):
         self.matrix_dipole()
         print '   calculate no field matrix...'
         self.matrix_no_field = self.no_field_matrix()
-        print '   initialize DE solver...'
-        self.desolver = DESolver(efield = self.EF,step = 10000,matrix_static = self.matrix_static,matrix_electric = self.matrix_electric)
+        # print '   initialize DE solver...'
+        # self.desolver = DESolver(efield = self.EF,step = 10000,matrix_static = self.matrix_static,matrix_electric = self.matrix_electric)
         print '   initialize DE solver (matrix version)...'
         self.desolver_matrix = DESolver_matrix(efield = self.EF,step = 10000,matrix_static = self.matrix_static,matrix_electric = self.matrix_electric,MATRIX_SIZE = self.N,order = 5)
         print '\n\n'
