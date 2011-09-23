@@ -8,7 +8,9 @@ import pickle
 import sys
 
 if __name__ == '__main__':
-    file_out = sys.argv[1]
+    file_out = sys.argv[2]
+    file_in = sys.argv[1]
+    
     """
     Set numpy printing setting
     """
@@ -38,7 +40,7 @@ if __name__ == '__main__':
     print '---END---\n\n'
 
 #    file_in = 'setting/three_level.txt'
-    file_in = 'setting/d2_2.txt'
+#    file_in = 'setting/d2_2.txt'
 
     dictf = open(file_in,'r')
     parameter = eval(dictf.read())
