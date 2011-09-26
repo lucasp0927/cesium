@@ -8,7 +8,9 @@ import pickle
 import sys
 
 if __name__ == '__main__':
-    file_out = sys.argv[1]
+    file_out = sys.argv[2]
+    file_in = sys.argv[1]
+    
     """
     Set numpy printing setting
     """
@@ -20,29 +22,24 @@ if __name__ == '__main__':
     stuff for initialization of solver object.
     """
     para = {}
-    # para['Tr'] = 1.0/91.9262177e6
-    # para['mu_c'] = 351.72571850e12
-    # para['PSI'] = 3.0/4.0*2.0*np.pi
-    # para['E_0'] = 1.0
-    # para['tao'] = 3e-14
-
     para['Tr'] = 1.0/91.9262177e6
-    para['mu_c'] = 351.72571850e12
-#    para['PSI'] = 3.0/4.0*2.0*np.pi
+    para['mu_c'] = 351.72571850e12-4.021776399375e9-188.4885e6
     para['PSI'] = 2.0*np.pi
-    para['E_0'] = 1.0
-    para['tao'] = 3e-14
+    para['E_0'] = np.sqrt((2.0*(140e-2)*para['Tr']/(1e-12*8.854187817e-12)))
+    para['tao'] = 40e-15 / (2*np.log(2))
 
     EF = Electricfield(para)
 
     print '---INFORMATION OF ELECTRICFIELD---'
+    print 'E0 is', para['E_0']
     print 'period is ',EF.period
     print 'total time is ',EF.total_time
     print 'zero_segment ',EF.zero_segment
+    print 'wave packet length',EF.time_no_field*2    
     print 'wave in packet', para['mu_c']*EF.time_no_field*2
     print '---END---\n\n'
 
-    file_in = 'setting/three_level.txt'
+#    file_in = 'setting/three_level.txt'
 #    file_in = 'setting/d2_2.txt'
 
     dictf = open(file_in,'r')
@@ -64,10 +61,13 @@ if __name__ == '__main__':
     S = new_test()
     print 'save S.period_matrix...'
     fout = open(file_out,'w')
-    pickle.dump(S.period_matrix,fout)
+    output = {}
+    output['period_matrix'] = S.period_matrix
+    output['matrix_static'] = S.matrix_static
+    pickle.dump(output,fout)
     fout.close()
 
-    # #test read
+    #test read
     # print 'test:'
     # fout = open(file_out,'r')
     # test = pickle.load(fout)

@@ -5,6 +5,8 @@ from scipy.weave import converters
 #from gpu_matrix import GPU_Matrix
 import scipy
 import time
+import sys
+from progress_bar import ProgressBar
 #from pycuda import driver, compiler, gpuarray, tools
 #import pycuda.autoinit
 
@@ -98,8 +100,6 @@ class DESolver_matrix(object):
         k6r = np.zeros([self.N,self.N],dtype = np.float64)
         k6i = np.zeros([self.N,self.N],dtype = np.float64)        
         for i in xrange(0,self.fine_step,6):
-            print i
-            t = time.time()
             k1r = (Her*self.E_arr[period][i] + Hsr)
             k1i = (Hei*self.E_arr[period][i] + Hsi)
             tmpr = Her*self.E_arr[period][i+1]+Hsr
@@ -118,7 +118,6 @@ class DESolver_matrix(object):
             tmpi = Hei*self.E_arr[period][i+5]+Hsi                                    
             self.gpu.matrix_mul(tmpr,tmpi,I+(-1.0*k1r*8.0/27.0-k2r*2.0-k3r*3544.0/2565.0+k4r*1859.0/4104.0-k5r*11.0/40.0)*self.dt,(-1.0*k1i*8.0/27.0-k2i*2.0-k3i*3544.0/2565.0+k4i*1859.0/4104.0-k5i*11.0/40.0)*self.dt,k6r,k6i)            
             self.gpu.matrix_mul(I+(k1r*16.0/135.0+k3r*6656.0/12825.0+k4r*28561.0/56430.0-k5r*9.0/50.0+k6r*2.0/55.0)*self.dt,(k1i*16.0/135.0+k3i*6656.0/12825.0+k4i*28561.0/56430.0-k5i*9.0/50.0+k6i*2.0/55.0)*self.dt,resultr,resulti,resultr,resulti)
-            print time.time() - t
         return resultr + resulti*1j
 
     def solve_5(self, period,N):
@@ -126,9 +125,12 @@ class DESolver_matrix(object):
         I = np.identity(N,dtype = np.complex)
         He = self.matrix_electric
         Hs = self.matrix_static
+        prog = ProgressBar(0, self.fine_step/6, 50, mode='fixed', char='#')        
         #python version
         for i in xrange(0,self.fine_step,6):
-            print i
+            prog.increment_amount()
+            print prog, '\r',
+            sys.stdout.flush()
             t = time.time()
             k1 = (He*self.E_arr[period][i] + Hs)
             tmp = He*self.E_arr[period][i+1]+Hs
@@ -142,7 +144,6 @@ class DESolver_matrix(object):
             tmp = He*self.E_arr[period][i+5]+Hs
             k6 = np.dot(tmp,I+(-1.0*k1*8.0/27.0-k2*2.0-k3*3544.0/2565.0+k4*1859.0/4104.0-k5*11.0/40.0)*self.dt)
             result = np.dot(I+(k1*16.0/135.0+k3*6656.0/12825.0+k4*28561.0/56430.0-k5*9.0/50.0+k6*2.0/55.0)*self.dt,result)
-            print time.time() - t
         return result
 
 

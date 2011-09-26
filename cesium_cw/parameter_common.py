@@ -174,7 +174,7 @@ class Parameter(object):
         else:
             j2 = 3.0/2.0
             Gamma = 2*np.pi*5.234e6
-
+            #Gamma = 2*np.pi*750.0e6
         n=self.parameter['n']
         self.parameter['decoherence_matrix'] = [[[] for i in range(n)] for j in range(n)]
         cs = Atom()

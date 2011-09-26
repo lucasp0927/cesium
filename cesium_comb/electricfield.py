@@ -19,7 +19,7 @@ class Electricfield():
                    para['E_0'],
                    para['tao']]
         self.period = self.calculate_period()
-        self.time_no_field = self.tao*np.power(9*np.log(10),0.5) #neglect field
+        self.time_no_field = self.tao*np.power(9*np.log(10),0.5) #neglect field < E_0 * 1e-9
 #        self.time_no_field = self.Tr/6 #make time no field as long as pulse width, for debugging
         self.full_length = self.Tr*self.period #length of one period
         self.zero_segment = self.Tr/2.0 - self.time_no_field
