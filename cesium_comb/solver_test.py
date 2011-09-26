@@ -30,7 +30,7 @@ if __name__ == '__main__':
     para['mu_c'] = 351.72571850e12
 #    para['PSI'] = 3.0/4.0*2.0*np.pi
     para['PSI'] = 2.0*np.pi
-    para['E_0'] = 0.0
+    para['E_0'] = 1.0
     para['tao'] = 3e-14
 
     EF = Electricfield(para)
