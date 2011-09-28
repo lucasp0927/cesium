@@ -19,13 +19,10 @@ NVFLAGS_SHARE = -shared -Xcompiler -fpic -lcublas -L/usr/share/cuda-sdk/C/lib --
 all: cublasTest
 
 cublasTest: main.o  libmatrixMul.so #matrixMul_gold.o
-	$(NVCC) $(NVINCLUDES) $(NVFLAGS) -o $(BINDIR)/main $(OBJDIR)/main.o  ../src/obj/libmatrixMul.so  #$(OBJDIR)/matrixMul_gold.o
+	$(NVCC) $(NVINCLUDES) $(NVFLAGS) -o $(BINDIR)/main $(OBJDIR)/main.o  ../src/obj/libmatrixMul.so 
 
 main.o: main.c
 	$(CXX) $(NVINCLUDES) $(CFLAGS) -o $(OBJDIR)/main.o -c main.c
-
-#matrixMul_gold.o: matrixMul_gold.cpp
-#	$(CXX) $(NVINCLUDES) $(CFLAGS) -o $(OBJDIR)/matrixMul_gold.o -c matrixMul_gold.cpp
 
 libmatrixMul.so: matrixMul.cu
 	$(NVCC) $(NVINCLUDES) $(NVFLAGS_SHARE) -o $(OBJDIR)/libmatrixMul.so matrixMul.cu
