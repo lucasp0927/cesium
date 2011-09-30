@@ -3,9 +3,11 @@ import numpy as np
 from electricfield import Electricfield
 from scipy.weave import converters
 #from gpu_matrix import GPU_Matrix
+from ctypes import *
 import scipy
 import time
 import sys
+import copy
 from progress_bar import ProgressBar
 #from pycuda import driver, compiler, gpuarray, tools
 #import pycuda.autoinit
@@ -42,7 +44,7 @@ class DESolver_matrix(object):
                 self.t_arr.append(t+1.0/2.0*self.dt)
             for period in range(self.EF.period):
                 self.E_arr.append([self.EF.comb_field(self.t_arr[i],period) for i in xrange(self.fine_step)])
-            self.solve = self.solve_5
+            self.solve = self.solve_5_ctypes
             
         self.N = MATRIX_SIZE
 #        self.gpu = GPU_Matrix(self.N)
@@ -131,7 +133,6 @@ class DESolver_matrix(object):
             prog.increment_amount()
             print prog, '\r',
             sys.stdout.flush()
-            t = time.time()
             k1 = (He*self.E_arr[period][i] + Hs)
             tmp = He*self.E_arr[period][i+1]+Hs
             k2 = np.dot(tmp,I+k1*0.25*self.dt)
@@ -145,7 +146,56 @@ class DESolver_matrix(object):
             k6 = np.dot(tmp,I+(-1.0*k1*8.0/27.0-k2*2.0-k3*3544.0/2565.0+k4*1859.0/4104.0-k5*11.0/40.0)*self.dt)
             result = np.dot(I+(k1*16.0/135.0+k3*6656.0/12825.0+k4*28561.0/56430.0-k5*9.0/50.0+k6*2.0/55.0)*self.dt,result)
         return result
+            
+    def solve_5_ctypes(self, period, N):
+        
+        def convertRavel(matrix,ri):
+            matrix = np.array(matrix)
+            matrix_ravel = matrix.ravel()
+            if ri == 'real':
+                matrix_return = np.double(copy.copy(matrix_ravel.real))
+            if ri == 'imag':
+                matrix_return = np.double(copy.copy(matrix_ravel.imag))
+            return matrix_return
+        
+        He = self.matrix_electric
+        Hs = self.matrix_static
+        
+        libmatrixMul = CDLL("./C_code/src/obj/libmatrixMul.so")
+        libmatrixMul.deviceVerify()
+        
+        her = convertRavel(He,'real')
+        hei = convertRavel(He,'imag')        
+        he_pointer = libmatrixMul.complexMatrixCreate(her.ctypes.data_as(POINTER(c_double)),hei.ctypes.data_as(POINTER(c_double)),N**2)
+        
+        hsr = convertRavel(He,'real')
+        hsi = convertRavel(He,'imag')        
+        hs_pointer = libmatrixMul.complexMatrixCreate(her.ctypes.data_as(POINTER(c_double)),hei.ctypes.data_as(POINTER(c_double)),N**2)
 
+        identity_pointer = libmatrixMul.complexIdentityMatrix(N)
+        
+        E_arr = np.array(self.E_arr)
+        E_arr_pointer = E_arr.ctypes.data_as(POINTER(c_double))
+        ## stuff need to give c module, He, Hs,E_arr,self.dt,N
+        result = np.identity(N,dtype = np.complex)
+        # I = np.identity(N,dtype = np.complex)
+        # He = self.matrix_electric
+        # Hs = self.matrix_static
+        # #python version
+        # for i in xrange(0,self.fine_step,6):
+        #     k1 = (He*self.E_arr[period][i] + Hs)
+        #     tmp = He*self.E_arr[period][i+1]+Hs
+        #     k2 = np.dot(tmp,I+k1*0.25*self.dt)
+        #     tmp = He*self.E_arr[period][i+2]+Hs
+        #     k3 = np.dot(tmp,I+(k1*3.0/32.0+k2*9.0/32.0)*self.dt)
+        #     tmp = He*self.E_arr[period][i+3]+Hs
+        #     k4 = np.dot(tmp,I+(k1*1932.0-k2*7200.0+k3*7296.0)*self.dt/2197.0)
+        #     tmp = He*self.E_arr[period][i+4]+Hs
+        #     k5 = np.dot(tmp,I+(k1*439.0/216.0-k2*8.0+k3*3680.0/513.0-k4*845.0/4104.0)*self.dt)
+        #     tmp = He*self.E_arr[period][i+5]+Hs
+        #     k6 = np.dot(tmp,I+(-1.0*k1*8.0/27.0-k2*2.0-k3*3544.0/2565.0+k4*1859.0/4104.0-k5*11.0/40.0)*self.dt)
+        #     result = np.dot(I+(k1*16.0/135.0+k3*6656.0/12825.0+k4*28561.0/56430.0-k5*9.0/50.0+k6*2.0/55.0)*self.dt,result)
+        return result
 
         # for i in xrange(0,self.fine_step,2):
         #     t = time.time()

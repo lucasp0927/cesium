@@ -12,3 +12,7 @@ test*
 /cesium_cw/setting/*.png
 /cesium_cw/setting/d1*
 /cesium_cw/setting/d2*
+/cesuym_comb/C_code/bin/*
+/cesuym_comb/C_code/src/obj/*
+*.so
+*.o

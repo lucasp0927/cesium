@@ -8,9 +8,11 @@
 extern "C"
 void doubleMatrixPrint(double* data,unsigned int size);
 extern "C"
-void progressBar(unsigned int full);
-
+cuDoubleComplex* complexIdentityMatrix(unsigned int size);
 extern "C"
+void progressBar(unsigned int full);
+extern "C"
+cuDoubleComplex* complexMatrixCreate(double* real,double* imag,unsigned int size);
 void complexTest();
 extern "C"
 void deviceVerify();

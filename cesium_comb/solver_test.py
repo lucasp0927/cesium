@@ -54,7 +54,7 @@ if __name__ == '__main__':
         print 'going to simulate',S.total_period(),'total periods.'
 #        S.main_control()
         S.main_control_matrix()
-        print S.matrix_no_field
+#        print S.matrix_no_field
         print S.period_matrix #one period
         return S
         
@@ -68,11 +68,11 @@ if __name__ == '__main__':
     fout.close()
 
     #test read
-    # print 'test:'
-    # fout = open(file_out,'r')
-    # test = pickle.load(fout)
-    # fout.close()
-    # print test
+    print 'test:'
+    fout = open(file_out,'r')
+    test = pickle.load(fout)
+    fout.close()
+    print test
     # def test1():
     #     S = Solver(parameter,EF)
     #     print S.build_matrix_dict(3)

@@ -17,6 +17,30 @@ void doubleMatrixPrint(double* data,unsigned int size)
     }
 }
 
+cuDoubleComplex* complexMatrixCreate(double* real,double* imag,unsigned int size)
+{
+    cuDoubleComplex* A  = (cuDoubleComplex*) malloc(sizeof(cuDoubleComplex)*size);
+    for (int i = 0; i < size; ++i)
+      {
+        A[i] = make_cuDoubleComplex(real[i],imag[i]);
+      }
+    return A;
+}
+
+cuDoubleComplex* complexIdentityMatrix(unsigned int size)
+{
+  cuDoubleComplex* A  = (cuDoubleComplex*) malloc(sizeof(cuDoubleComplex)*(size*size));
+  for (int i = 0; i < size*size; ++i)
+    {
+      A[i] = make_cuDoubleComplex(0.0,0.0);
+    }
+  for (int i = 0; i < size; ++i)
+    {
+      A[i*size+i] = make_cuDoubleComplex(1.0,0.0);
+    }
+  return A;
+}
+
 void deviceVerify ()
 {
   int devID;
