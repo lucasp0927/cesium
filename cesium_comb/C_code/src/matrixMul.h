@@ -8,8 +8,12 @@
 extern "C"
 void doubleMatrixPrint(double* data,unsigned int size);
 extern "C"
+void returnMatrixPointer(cuDoubleComplex* data,char ri,int size,double* result);
+extern "C"
 cuDoubleComplex* complexIdentityMatrix(unsigned int size);
 extern "C"
+void solve(cuDoubleComplex* Hs, cuDoubleComplex* He,cuDoubleComplex* result, double* E_arr,double dt,int N, int finestep);
+extern "C"  
 void progressBar(unsigned int full);
 extern "C"
 cuDoubleComplex* complexMatrixCreate(double* real,double* imag,unsigned int size);

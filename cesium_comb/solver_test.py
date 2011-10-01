@@ -25,7 +25,8 @@ if __name__ == '__main__':
     para['Tr'] = 1.0/91.9262177e6
     para['mu_c'] = 351.72571850e12-4.021776399375e9-188.4885e6
     para['PSI'] = 2.0*np.pi
-    para['E_0'] = np.sqrt((2.0*(140e-2)*para['Tr']/(1e-12*8.854187817e-12)))
+    #    para['E_0'] = np.sqrt((2.0*(140e-2)*para['Tr']/(1e-12*8.854187817e-12)))
+    para['E_0'] = 0.0
     para['tao'] = 40e-15 / (2*np.log(2))
 
     EF = Electricfield(para)
@@ -54,7 +55,7 @@ if __name__ == '__main__':
         print 'going to simulate',S.total_period(),'total periods.'
 #        S.main_control()
         S.main_control_matrix()
-#        print S.matrix_no_field
+        print S.matrix_no_field
         print S.period_matrix #one period
         return S
         
@@ -68,11 +69,12 @@ if __name__ == '__main__':
     fout.close()
 
     #test read
-    print 'test:'
-    fout = open(file_out,'r')
-    test = pickle.load(fout)
-    fout.close()
-    print test
+    # print 'test:'
+    # fout = open(file_out,'r')
+    # test = pickle.load(fout)
+    # fout.close()
+    # print test
+    
     # def test1():
     #     S = Solver(parameter,EF)
     #     print S.build_matrix_dict(3)

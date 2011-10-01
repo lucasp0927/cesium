@@ -2,15 +2,14 @@
 import numpy as np
 from electricfield import Electricfield
 from scipy.weave import converters
-#from gpu_matrix import GPU_Matrix
 from ctypes import *
 import scipy
 import time
 import sys
 import copy
 from progress_bar import ProgressBar
-#from pycuda import driver, compiler, gpuarray, tools
-#import pycuda.autoinit
+
+
 
 class DESolver_matrix(object):
     """
@@ -148,6 +147,14 @@ class DESolver_matrix(object):
         return result
             
     def solve_5_ctypes(self, period, N):
+
+        def convertUnravel(real,imag):
+            result = []
+            for i in range(N**2):
+                result.append(real[i]+ 1j* imag[i])
+            result = np.array(result)
+            result.shape = (N,N)
+            return result
         
         def convertRavel(matrix,ri):
             matrix = np.array(matrix)
@@ -167,17 +174,37 @@ class DESolver_matrix(object):
         her = convertRavel(He,'real')
         hei = convertRavel(He,'imag')        
         he_pointer = libmatrixMul.complexMatrixCreate(her.ctypes.data_as(POINTER(c_double)),hei.ctypes.data_as(POINTER(c_double)),N**2)
-        
-        hsr = convertRavel(He,'real')
-        hsi = convertRavel(He,'imag')        
-        hs_pointer = libmatrixMul.complexMatrixCreate(her.ctypes.data_as(POINTER(c_double)),hei.ctypes.data_as(POINTER(c_double)),N**2)
 
-        identity_pointer = libmatrixMul.complexIdentityMatrix(N)
-        
-        E_arr = np.array(self.E_arr)
+        hsr = convertRavel(Hs,'real')
+        hsi = convertRavel(Hs,'imag')        
+        hs_pointer = libmatrixMul.complexMatrixCreate(hsr.ctypes.data_as(POINTER(c_double)),hsi.ctypes.data_as(POINTER(c_double)),N**2)
+
+        result_pointer = libmatrixMul.complexIdentityMatrix(N)
+
+        E_arr = np.array(self.E_arr[period])
         E_arr_pointer = E_arr.ctypes.data_as(POINTER(c_double))
+
+        libmatrixMul.solve(hs_pointer,he_pointer,result_pointer,E_arr_pointer,c_double(self.dt),c_int(N),c_int(self.fine_step))
+        result_real = (c_double*(N**2))()
+        result_imag = (c_double*(N**2))()        
+        libmatrixMul.returnMatrixPointer(result_pointer,c_char('r'),N**2,result_real)
+        libmatrixMul.returnMatrixPointer(result_pointer,c_char('i'),N**2,result_imag)
+        result = convertUnravel(result_real,result_imag)
+        
+        def testreturn():
+            hsr_test = (c_double*(N**2))()
+            hsi_test = (c_double*(N**2))()        
+            libmatrixMul.returnMatrixPointer(hs_pointer,c_char('r'),N**2,hsr_test)
+            libmatrixMul.returnMatrixPointer(hs_pointer,c_char('i'),N**2,hsi_test)        
+            Hs_test = convertUnravel(hsr_test,hsi_test)
+            print Hs
+            print Hs_test
+            print np.linalg.norm(Hs-Hs_test)
+        return result            
+        
+
         ## stuff need to give c module, He, Hs,E_arr,self.dt,N
-        result = np.identity(N,dtype = np.complex)
+        #result = np.identity(N,dtype = np.complex) 
         # I = np.identity(N,dtype = np.complex)
         # He = self.matrix_electric
         # Hs = self.matrix_static
@@ -195,7 +222,7 @@ class DESolver_matrix(object):
         #     tmp = He*self.E_arr[period][i+5]+Hs
         #     k6 = np.dot(tmp,I+(-1.0*k1*8.0/27.0-k2*2.0-k3*3544.0/2565.0+k4*1859.0/4104.0-k5*11.0/40.0)*self.dt)
         #     result = np.dot(I+(k1*16.0/135.0+k3*6656.0/12825.0+k4*28561.0/56430.0-k5*9.0/50.0+k6*2.0/55.0)*self.dt,result)
-        return result
+
 
         # for i in xrange(0,self.fine_step,2):
         #     t = time.time()
