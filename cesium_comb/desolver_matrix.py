@@ -44,7 +44,7 @@ class DESolver_matrix(object):
             for period in range(self.EF.period):
                 self.E_arr.append([self.EF.comb_field(self.t_arr[i],period) for i in xrange(self.fine_step)])
             self.solve = self.solve_5_ctypes
-            
+
         self.N = MATRIX_SIZE
 #        self.gpu = GPU_Matrix(self.N)
 
@@ -173,22 +173,22 @@ class DESolver_matrix(object):
         
         her = convertRavel(He,'real')
         hei = convertRavel(He,'imag')        
-        he_pointer = libmatrixMul.complexMatrixCreate(her.ctypes.data_as(POINTER(c_double)),hei.ctypes.data_as(POINTER(c_double)),N**2)
+        #he_pointer = libmatrixMul.complexMatrixCreate(her.ctypes.data_as(POINTER(c_double)),hei.ctypes.data_as(POINTER(c_double)),c_uint(N**2))
 
         hsr = convertRavel(Hs,'real')
         hsi = convertRavel(Hs,'imag')        
-        hs_pointer = libmatrixMul.complexMatrixCreate(hsr.ctypes.data_as(POINTER(c_double)),hsi.ctypes.data_as(POINTER(c_double)),N**2)
+        #hs_pointer = libmatrixMul.complexMatrixCreate(hsr.ctypes.data_as(POINTER(c_double)),hsi.ctypes.data_as(POINTER(c_double)),c_uint(N**2))
 
-        result_pointer = libmatrixMul.complexIdentityMatrix(N)
+        result_pointer = libmatrixMul.complexIdentityMatrix(c_uint(N))
 
         E_arr = np.array(self.E_arr[period])
         E_arr_pointer = E_arr.ctypes.data_as(POINTER(c_double))
 
-        libmatrixMul.solve(hs_pointer,he_pointer,result_pointer,E_arr_pointer,c_double(self.dt),c_int(N),c_int(self.fine_step))
         result_real = (c_double*(N**2))()
-        result_imag = (c_double*(N**2))()        
-        libmatrixMul.returnMatrixPointer(result_pointer,c_char('r'),N**2,result_real)
-        libmatrixMul.returnMatrixPointer(result_pointer,c_char('i'),N**2,result_imag)
+        result_imag = (c_double*(N**2))()
+        
+        libmatrixMul.solve(hsr.ctypes.data_as(POINTER(c_double)),hsi.ctypes.data_as(POINTER(c_double)),her.ctypes.data_as(POINTER(c_double)),hei.ctypes.data_as(POINTER(c_double)),E_arr_pointer,c_double(self.dt),c_int(N),c_int(self.fine_step),result_real,result_imag)
+
         result = convertUnravel(result_real,result_imag)
         
         def testreturn():

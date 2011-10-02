@@ -1,4 +1,5 @@
 #include "matrixMul.h"
+#include <time.h>
 #define SCALE(vector,num)\
 {const cuDoubleComplex alpha = make_cuDoubleComplex(num,0.0);  \
   cublasZscal(handle,N*N,&alpha,vector,1);\
@@ -11,6 +12,15 @@
   cublasZgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, N, N, N, &alpha, x, N, y, N, &beta, result, N);\
   }             \
 
+#define MUL1(x,y,result)                               \
+  {             \
+  cudaMalloc((void**) &d_##result, mem_size);  \
+  const cuDoubleComplex alpha = make_cuDoubleComplex(1.0,0.0);\
+  const cuDoubleComplex beta = make_cuDoubleComplex(0.0,0.0);\
+  cublasZgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, N, N, N, &alpha, x, N, y, N, &beta, d_##result, N);\
+  cudaMemcpy(result, d_##result, mem_size, cudaMemcpyDeviceToHost) ;\
+  cudaFree(d_##result);                                         \
+  }             \
 
 #define COPY(from,to)  cublasZcopy(handle,N*N,from,1,to,1)
 // y = ax + y
@@ -20,12 +30,28 @@
   cublasZaxpy (handle,N*N, &alpha , x , 1 , y , 1);             \
 }\
 
+#define AXPY1(y,x,a)\
+{\
+  cudaMalloc((void**) &d_##x, mem_size);\
+  cudaMemcpy(d_##x, x, mem_size, cudaMemcpyHostToDevice) ;         \
+  const cuDoubleComplex alpha = make_cuDoubleComplex(a,0.0);\
+  cublasZaxpy (handle,N*N, &alpha , d_##x , 1 , y , 1);             \
+  cudaFree(d_##x);  \
+}\
 
 
-void progressBar(unsigned int full)
+
+void progressBar(unsigned int full,long avg_time)
 {
   static unsigned int now = 1;
-  printf("%d\% \r",now*100/full);
+  long eta = (full - now)*avg_time;
+  long day = eta/86400;
+  eta = eta % 86400;
+  long hour = eta/3600;
+  eta = eta % 3600;
+  long minute = eta/60;
+  eta = eta % 60;    
+  printf("%d%% \t average time: %ld,\t ETA:%ld day %ld hour %ld minute %ld seconds\r",now*100/full,avg_time,day,hour,minute,eta);
   fflush(stdout);
   now++;
 
@@ -188,7 +214,7 @@ void printDiff(cuDoubleComplex *data1, cuDoubleComplex *data2, int width, int he
   printf(" \n  Total Errors = %d\n\n", error_count);
 }
 
-void solve(cuDoubleComplex* Hs, cuDoubleComplex* He,cuDoubleComplex* result, double* E_arr,double dt,int N, int finestep)
+void solve(double* Hsr,double* Hsi, double* Her,double* Hei, double* E_arr,double dt,int N, int finestep,double* resultr,double*resulti)
 {
   printf ("\nstart gpu solving...\n");
   printf ("matrix size:%d\n",N*N);
@@ -201,85 +227,100 @@ void solve(cuDoubleComplex* Hs, cuDoubleComplex* He,cuDoubleComplex* result, dou
   cudaMalloc((void**) &d_Hs, mem_size);
   cudaMalloc((void**) &d_He, mem_size);
   cudaMalloc((void**) &d_result, mem_size);
-  cudaMalloc((void**) &d_result_tmp, mem_size);  
-  cudaMalloc((void**) &d_k1, mem_size);
-  cudaMalloc((void**) &d_k2, mem_size);
-  cudaMalloc((void**) &d_k3, mem_size);
-  cudaMalloc((void**) &d_k4, mem_size);
-  cudaMalloc((void**) &d_k5, mem_size);
-  cudaMalloc((void**) &d_k6, mem_size);
+  /* cudaMalloc((void**) &d_k1, mem_size); */
+  /* cudaMalloc((void**) &d_k3, mem_size); */
+  /* cudaMalloc((void**) &d_k4, mem_size); */
+  /* cudaMalloc((void**) &d_k5, mem_size); */
+  /* cudaMalloc((void**) &d_k6, mem_size); */
   cudaMalloc((void**) &d_tmp, mem_size);
   cudaMalloc((void**) &d_tmp2, mem_size);
   cudaMalloc((void**) &d_I, mem_size);
 
-  cuDoubleComplex* I = complexIdentityMatrix(N);
+  cuDoubleComplex* k1 = (cuDoubleComplex*) malloc(mem_size);
+  cuDoubleComplex* k2 = (cuDoubleComplex*) malloc(mem_size);
+  cuDoubleComplex* k3 = (cuDoubleComplex*) malloc(mem_size);
+  cuDoubleComplex* k4 = (cuDoubleComplex*) malloc(mem_size);
+  cuDoubleComplex* k5 = (cuDoubleComplex*) malloc(mem_size);
+  cuDoubleComplex* k6 = (cuDoubleComplex*) malloc(mem_size);
 
+  cuDoubleComplex* Hs = complexMatrixCreate(Hsr,Hsi,N*N);
+  cuDoubleComplex* He = complexMatrixCreate(Her,Hei,N*N);
+  cuDoubleComplex* I = complexIdentityMatrix(N);
+  cuDoubleComplex* result = complexIdentityMatrix(N);
+
+  printf ("copy data to device...\n");
   // copy host memory to device
+  cudaMemcpy(d_I, I, mem_size, cudaMemcpyHostToDevice) ;
+  cudaMemcpy(d_result, result, mem_size, cudaMemcpyHostToDevice) ;
   cudaMemcpy(d_Hs, Hs, mem_size, cudaMemcpyHostToDevice) ;
   cudaMemcpy(d_He, He, mem_size, cudaMemcpyHostToDevice) ;
-  cudaMemcpy(d_result, result, mem_size, cudaMemcpyHostToDevice) ;
-  cudaMemcpy(d_I, I, mem_size, cudaMemcpyHostToDevice) ;
 
+
+  printf ("initialize cublas\n");
   //cublas_v2
   cublasHandle_t handle;
   checkError(cublasCreate(&handle), "cublasCreate() error!\n");
-
-  //test: scale result  y = ax + y
-
-  /* COPY(d_result,d_tmp); */
-  /* AXPY(d_tmp,d_result,2.0); */
-  /* MUL(d_result,d_Hs,d_tmp); */
-  /* COPY(d_tmp,d_result); */
+  int counter = 0;
+  long avg_time = 0;
+  time_t seconds;
 
   for (int i = 0; i < finestep; i=i+6)
     {
-      progressBar(finestep/6);
+      seconds = time (NULL);
+      progressBar(finestep/6,avg_time);
+      //printf ("%d\n",i);
       /* k1 */
+      cudaMalloc((void**) &d_k1, mem_size);
       COPY(d_He,d_k1);
       SCALE(d_k1,E_arr[i]);
       AXPY(d_k1,d_Hs,1.0);
+      cudaMemcpy(k1, d_k1, mem_size, cudaMemcpyDeviceToHost) ;
+      cudaFree(d_k1);
       /* tmp */
       COPY(d_He,d_tmp);
       SCALE(d_tmp,E_arr[i+1]);
       AXPY(d_tmp,d_Hs,1.0);
       /* tmp2 */
       COPY(d_I,d_tmp2);
-      AXPY(d_tmp2,d_k1,0.25*dt);
+
+      AXPY1(d_tmp2,k1,0.25*dt);
+
       /* k2 */
-      MUL(d_tmp,d_tmp2,d_k2);
+      MUL1(d_tmp,d_tmp2,k2);
       /* tmp */
       COPY(d_He,d_tmp);
       SCALE(d_tmp,E_arr[i+2]);
       AXPY(d_tmp,d_Hs,1.0);
       /* tmp2 */
       COPY(d_I,d_tmp2);
-      AXPY(d_tmp2,d_k1,3.0/32.0*dt);
-      AXPY(d_tmp2,d_k2,9.0/32.0*dt);
+      AXPY1(d_tmp2,k1,3.0/32.0*dt);
+      AXPY1(d_tmp2,k2,9.0/32.0*dt);
+
       /* k3 */
-      MUL(d_tmp,d_tmp2,d_k3);
+      MUL1(d_tmp,d_tmp2,k3);
       /* tmp */
       COPY(d_He,d_tmp);
       SCALE(d_tmp,E_arr[i+3]);
       AXPY(d_tmp,d_Hs,1.0);
       /* tmp2 */
       COPY(d_I,d_tmp2);
-      AXPY(d_tmp2,d_k1,1932.0/2197.0*dt);
-      AXPY(d_tmp2,d_k2,-1.0*7200.0/2197.0*dt);
-      AXPY(d_tmp2,d_k3,7296.0/2197.0*dt);
+      AXPY1(d_tmp2,k1,1932.0/2197.0*dt);
+      AXPY1(d_tmp2,k2,-1.0*7200.0/2197.0*dt);
+      AXPY1(d_tmp2,k3,7296.0/2197.0*dt);
       /* k4 */
-      MUL(d_tmp,d_tmp2,d_k4);
+      MUL1(d_tmp,d_tmp2,k4);
       /* tmp */
       COPY(d_He,d_tmp);
       SCALE(d_tmp,E_arr[i+4]);
       AXPY(d_tmp,d_Hs,1.0);
       /* tmp2 */
       COPY(d_I,d_tmp2);
-      AXPY(d_tmp2,d_k1,439.0/216.0*dt);
-      AXPY(d_tmp2,d_k2,-1.0*8.0*dt);
-      AXPY(d_tmp2,d_k3,3680.0/513.0*dt);
-      AXPY(d_tmp2,d_k4,-1.0*845.0/4104.0*dt);
+      AXPY1(d_tmp2,k1,439.0/216.0*dt);
+      AXPY1(d_tmp2,k2,-1.0*8.0*dt);
+      AXPY1(d_tmp2,k3,3680.0/513.0*dt);
+      AXPY1(d_tmp2,k4,-1.0*845.0/4104.0*dt);
       /* k5 */
-      MUL(d_tmp,d_tmp2,d_k5);
+      MUL1(d_tmp,d_tmp2,k5);
 
       /* tmp */
       COPY(d_He,d_tmp);
@@ -287,38 +328,51 @@ void solve(cuDoubleComplex* Hs, cuDoubleComplex* He,cuDoubleComplex* result, dou
       AXPY(d_tmp,d_Hs,1.0);
       /* tmp2 */
       COPY(d_I,d_tmp2);
-      AXPY(d_tmp2,d_k1,-1.0*8.0/27.0*dt);
-      AXPY(d_tmp2,d_k2,-1.0*2.0*dt);
-      AXPY(d_tmp2,d_k3,-1.0*3544.0/2565.0*dt);
-      AXPY(d_tmp2,d_k4,1859.0/4104.0*dt);
-      AXPY(d_tmp2,d_k5,-1.0*11.0/40.0*dt);      
+      AXPY1(d_tmp2,k1,-1.0*8.0/27.0*dt);
+      AXPY1(d_tmp2,k2,-1.0*2.0*dt);
+      AXPY1(d_tmp2,k3,-1.0*3544.0/2565.0*dt);
+      AXPY1(d_tmp2,k4,1859.0/4104.0*dt);
+      AXPY1(d_tmp2,k5,-1.0*11.0/40.0*dt);
+      cudaFree(d_k2);
       /* k6 */
-      MUL(d_tmp,d_tmp2,d_k6);
+      MUL1(d_tmp,d_tmp2,k6);
       /* tmp */
       COPY(d_I,d_tmp);
-      AXPY(d_tmp,d_k1,16.0/135.0*dt);
-      AXPY(d_tmp,d_k3,6656.0/12825.0*dt);
-      AXPY(d_tmp,d_k4,28561.0/56430.0*dt);
-      AXPY(d_tmp,d_k5,-1.0*9.0/50.0*dt);
-      AXPY(d_tmp,d_k6,2.0/55.0*dt);
+      AXPY1(d_tmp,k1,16.0/135.0*dt);
+      AXPY1(d_tmp,k3,6656.0/12825.0*dt);
+      AXPY1(d_tmp,k4,28561.0/56430.0*dt);
+      AXPY1(d_tmp,k5,-1.0*9.0/50.0*dt);
+      AXPY1(d_tmp,k6,2.0/55.0*dt);
       /* result */
+      cudaMalloc((void**) &d_result_tmp, mem_size);
       MUL(d_tmp,d_result,d_result_tmp);
       COPY(d_result_tmp,d_result);
+      cudaFree(d_result_tmp);
+      seconds = time (NULL) - seconds;
+
+      avg_time = (avg_time*counter + seconds)/(counter+1);
+      counter++;
     }
 
   //retrieve result
   cudaMemcpy(result, d_result, mem_size, cudaMemcpyDeviceToHost) ;
   checkError(cublasDestroy(handle), "cublasDestroy() error!\n");
+  returnMatrixPointer(result,'r',N*N,resultr);
+  returnMatrixPointer(result,'i',N*N,resulti);
+
   //free memory
   cudaFree(d_Hs);
   cudaFree(d_He);
   cudaFree(d_result);
+  cudaFree(d_result_tmp);
   cudaFree(d_k1);
   cudaFree(d_k2);
   cudaFree(d_k3);
   cudaFree(d_k4);
   cudaFree(d_k5);
   cudaFree(d_k6);
+  cudaFree(d_tmp);
+  cudaFree(d_tmp2);
 }
 
 void runTest()

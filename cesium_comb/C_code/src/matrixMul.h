@@ -12,9 +12,10 @@ void returnMatrixPointer(cuDoubleComplex* data,char ri,int size,double* result);
 extern "C"
 cuDoubleComplex* complexIdentityMatrix(unsigned int size);
 extern "C"
-void solve(cuDoubleComplex* Hs, cuDoubleComplex* He,cuDoubleComplex* result, double* E_arr,double dt,int N, int finestep);
+//void solve(cuDoubleComplex* Hs, cuDoubleComplex* He,cuDoubleComplex* result, double* E_arr,double dt,int N, int finestep);
+void solve(double* Hsr,double*Hsi, double* Her,double* Hei , double* E_arr,double dt,int N, int finestep,double* resultr, double* resulti);
 extern "C"  
-void progressBar(unsigned int full);
+void progressBar(unsigned int full,long avg_time);
 extern "C"
 cuDoubleComplex* complexMatrixCreate(double* real,double* imag,unsigned int size);
 void complexTest();

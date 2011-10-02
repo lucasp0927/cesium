@@ -22,7 +22,8 @@ if __name__ == '__main__':
     stuff for initialization of solver object.
     """
     para = {}
-    para['Tr'] = 1.0/91.9262177e6
+    #    para['Tr'] = 1.0/91.9262177e12
+    para['Tr'] = 9.0e-12
     para['mu_c'] = 351.72571850e12-4.021776399375e9-188.4885e6
     para['PSI'] = 2.0*np.pi
     #    para['E_0'] = np.sqrt((2.0*(140e-2)*para['Tr']/(1e-12*8.854187817e-12)))
@@ -56,7 +57,8 @@ if __name__ == '__main__':
 #        S.main_control()
         S.main_control_matrix()
         print S.matrix_no_field
-        print S.period_matrix #one period
+        print S.period_matrix #oneperiod
+        print np.linalg.norm(S.matrix_no_field - S.period_matrix)
         return S
         
     S = new_test()
