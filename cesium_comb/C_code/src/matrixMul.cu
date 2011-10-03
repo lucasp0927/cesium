@@ -51,7 +51,7 @@ void progressBar(unsigned int full,long avg_time)
   eta = eta % 3600;
   long minute = eta/60;
   eta = eta % 60;    
-  printf("%d%% \t average time: %ld,\t ETA:%ld day %ld hour %ld minute %ld seconds\r",now*100/full,avg_time,day,hour,minute,eta);
+  printf("%d%% \t average time: %ld sec,\t ETA:%ld day %ld hour %ld minute %ld second\r",now*100/full,avg_time,day,hour,minute,eta);
   fflush(stdout);
   now++;
 
@@ -236,6 +236,7 @@ void solve(double* Hsr,double* Hsi, double* Her,double* Hei, double* E_arr,doubl
   cudaMalloc((void**) &d_tmp2, mem_size);
   cudaMalloc((void**) &d_I, mem_size);
 
+  // allocate host memory
   cuDoubleComplex* k1 = (cuDoubleComplex*) malloc(mem_size);
   cuDoubleComplex* k2 = (cuDoubleComplex*) malloc(mem_size);
   cuDoubleComplex* k3 = (cuDoubleComplex*) malloc(mem_size);
@@ -260,6 +261,7 @@ void solve(double* Hsr,double* Hsi, double* Her,double* Hei, double* E_arr,doubl
   //cublas_v2
   cublasHandle_t handle;
   checkError(cublasCreate(&handle), "cublasCreate() error!\n");
+
   int counter = 0;
   long avg_time = 0;
   time_t seconds;
@@ -348,6 +350,7 @@ void solve(double* Hsr,double* Hsi, double* Her,double* Hei, double* E_arr,doubl
       MUL(d_tmp,d_result,d_result_tmp);
       COPY(d_result_tmp,d_result);
       cudaFree(d_result_tmp);
+
       seconds = time (NULL) - seconds;
 
       avg_time = (avg_time*counter + seconds)/(counter+1);
@@ -373,6 +376,16 @@ void solve(double* Hsr,double* Hsi, double* Her,double* Hei, double* E_arr,doubl
   cudaFree(d_k6);
   cudaFree(d_tmp);
   cudaFree(d_tmp2);
+  free(k1);
+  free(k2);
+  free(k3);
+  free(k4);
+  free(k5);
+  free(k6);
+  free(Hs);
+  free(He);
+  free(I);
+  free(result);
 }
 
 void runTest()
