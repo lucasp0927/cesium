@@ -1,4 +1,4 @@
-CUDA_INSTALL_PATH ?= /usr
+CUDA_INSTALL_PATH ?= /opt/cuda-toolkit
 
 # Directories
 BINDIR = ../bin
@@ -10,11 +10,11 @@ CC         := gcc -fPIC
 LINK       := g++ -fPIC
 
 
-INCLUDES  += -I. -I$(CUDA_INSTALL_PATH)/include/cuda
-NVINCLUDES  += -I. -I$(CUDA_INSTALL_PATH)/include/cuda -I/usr/share/cuda-sdk/C/common/inc
+INCLUDES  += -I. -I$(CUDA_INSTALL_PATH)/include
+NVINCLUDES  += -I. -I$(CUDA_INSTALL_PATH)/include/ -I/usr/share/cuda-sdk/C/common/inc
 CFLAGS = -O3
-NVFLAGS = -lcublas -L/usr/share/cuda-sdk/C/lib  --compiler-bindir=/opt/gcc-4.4 -m64 --compiler-options '-O3 -fno-strict-aliasing'
-NVFLAGS_SHARE = -shared -Xcompiler -fpic -lcublas -L/usr/share/cuda-sdk/C/lib --compiler-bindir=/opt/gcc-4.4 -m64 --compiler-options '-O3 -fPIC'
+NVFLAGS = -lcublas -L/usr/share/cuda-sdk/C/lib  --compiler-bindir=gcc -m64 --compiler-options '-O3 -fno-strict-aliasing'
+NVFLAGS_SHARE = -shared -Xcompiler -fpic -lcublas -L/usr/share/cuda-sdk/C/lib --compiler-bindir=gcc -m64 --compiler-options '-O3 -fPIC'
 
 all: cublasTest
 
