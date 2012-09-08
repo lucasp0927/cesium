@@ -216,9 +216,13 @@ class System:
     def sweep_save_file(self,filename,points):
         f=open(filename,'w')# w option will overwrite file if file exist            
         for i in range(points):
-            tmp_str = '%.0f'%self.result[i][0]
-            for j in range(self.n):
-                tmp_str += ' %.10f'%self.result[i][j+1]
+            tmp_str = '%.0f'%(self.result[i][0]/(2.0*np.pi)) # convert to hz
+            if self.d1 == 1:
+                tmp_str += '%.10f %.10f %.10f' %(np.sum(self.result[i][1:17]),np.sum(self.result[i][17:26]),np.sum(self.result[i][26:33]))
+            elif self.d1 == 2:
+                tmp_str += '%.10f %.10f %.10f' %(np.sum(self.result[i][1:33]),np.sum(self.result[i][33:42]),np.sum(self.result[i][42:49]))                
+            # for j in range(self.n):
+            #     tmp_str += ' %.10f'%self.result[i][j+1]
             tmp_str += '\n'
             f.write(tmp_str)
         f.close()
@@ -289,7 +293,7 @@ class System:
         self.nu2 = self.nu.copy()
         self.level_group = parameter['level_group']
         self.decoherence_matrix = parameter['decoherence_matrix']
-
+        self.d1 = parameter['d1']
         self.N = self.n**2 #number of independent density matrix variable
         self.result = []
         print '  initializing system matrix...'        

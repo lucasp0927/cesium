@@ -16,3 +16,4 @@ test*
 /cesuym_comb/C_code/src/obj/*
 *.so
 *.o
+.DS_Store

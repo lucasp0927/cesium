@@ -137,4 +137,4 @@ if __name__ ==  '__main__':
     except KeyError:#d1 is not specific in parameter
         plot_current = plot_plt
     system.sweep(*parameter['sweep_profile'])# can parameter add after unpack array?
-    plot_current(parameter['n'])
+    #plot_current(parameter['n'])
