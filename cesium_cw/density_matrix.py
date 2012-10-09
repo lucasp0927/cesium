@@ -207,16 +207,19 @@ class System:
     def allocate_job(self,start,end,points,threads):
         points = points//threads*threads # points per thread
         ppt = points//threads #points per threads
-        space = zip(range(points),np.linspace(start,end,points))
+        space = zip(range(points),np.linspace(float(start),float(end),points))
         job = []
         for i in range(threads):
             job.append(space[i*ppt:(i+1)*ppt])
         return job
     
     def sweep_save_file(self,filename,points):
+        print "save file"
         f=open(filename,'w')# w option will overwrite file if file exist            
+        tmp_str = "#average power: %fw/m^2\n" %(self.power)
+        f.write(tmp_str)
         for i in range(points):
-            tmp_str = '%.0f'%(self.result[i][0]/(2.0*np.pi)) # convert to hz
+            tmp_str = '%.10f '%(self.result[i][0]/(2.0*np.pi)) # convert to hz
             if self.d1 == 1:
                 tmp_str += '%.10f %.10f %.10f' %(np.sum(self.result[i][1:17]),np.sum(self.result[i][17:26]),np.sum(self.result[i][26:33]))
             elif self.d1 == 2:
@@ -294,6 +297,7 @@ class System:
         self.level_group = parameter['level_group']
         self.decoherence_matrix = parameter['decoherence_matrix']
         self.d1 = parameter['d1']
+        self.power = parameter['power']
         self.N = self.n**2 #number of independent density matrix variable
         self.result = []
         print '  initializing system matrix...'        

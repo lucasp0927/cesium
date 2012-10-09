@@ -112,29 +112,54 @@ def plot_gnuplot(n):
 
 if __name__ ==  '__main__':
     file_in = sys.argv[1]
-    file_out = sys.argv[2]
+    file_name = str.split(file_in,'.')[0]
+    factor = [6,7,8,9,10,20,30,40,50,60,70,80,90,100,110,120,130,140,150,160,170,180,190,200]
+    #factor = [1000,2000]    
+    #file_out = sys.argv[2]
 
     # dictf = open('three_level','w')
     # pickle.dump(parameter,dictf)
     # dictf.close()
 
-    dictf = open(file_in,'r')
-    parameter = eval(dictf.read())
-#    parameter = pickle.load(dictf)
-    dictf.close()
 
     # txtf = open(file_in+'.txt','w')
     # txtf.write(str(parameter))
     # txtf.close()
 
-    system = System(parameter)
-    parameter['sweep_profile'].append(file_out)
-    try:
-        if parameter['d1'] == 1: #d1
-            plot_current = plot_plt_d1
-        elif parameter['d1'] == 0:#d2
-            plot_current = plot_plt_d2
-    except KeyError:#d1 is not specific in parameter
-        plot_current = plot_plt
-    system.sweep(*parameter['sweep_profile'])# can parameter add after unpack array?
-    #plot_current(parameter['n'])
+    """
+    calculate power
+    """
+    for f in factor:
+
+        dictf = open(file_in,'r')
+        parameter = eval(dictf.read())
+        parameter['e_amp'] = list(parameter['e_amp'])
+    #    parameter = pickle.load(dictf)
+        dictf.close()
+
+        file_out  = file_name + str(f) + "_freq.dat"
+        e_amp =  parameter['e_amp']
+        epsilon_0 =  8.854187817620e-12
+        C = 2.99792458e8
+        amp = np.sqrt(2.162964e-2 * f / (epsilon_0 * C))
+        power = epsilon_0 * C / 2.0 *  amp**2 + epsilon_0 * C / 2.0 *  amp**2
+        print power
+        parameter['e_amp'][0][0] = amp
+        parameter['e_amp'][1][0] = amp
+        parameter['power'] = power
+
+        """
+        initialize
+        """
+        system = System(parameter)
+        parameter['sweep_profile'].append(file_out)
+
+        try:
+            if parameter['d1'] == 1: #d1
+                plot_current = plot_plt_d1
+            elif parameter['d1'] == 2:#d2
+                plot_current = plot_plt_d2
+        except KeyError:#d1 is not specific in parameter
+            plot_current = plot_plt
+        system.sweep(*parameter['sweep_profile'])# can parameter add after unpack array?
+        #plot_current(parameter['n'])
