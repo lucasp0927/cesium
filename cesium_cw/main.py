@@ -114,17 +114,6 @@ if __name__ ==  '__main__':
     file_in = sys.argv[1]
     file_name = str.split(file_in,'.')[0]
     factor = [6,7,8,9,10,20,30,40,50,60,70,80,90,100,110,120,130,140,150,160,170,180,190,200]
-    #factor = [1000,2000]    
-    #file_out = sys.argv[2]
-
-    # dictf = open('three_level','w')
-    # pickle.dump(parameter,dictf)
-    # dictf.close()
-
-
-    # txtf = open(file_in+'.txt','w')
-    # txtf.write(str(parameter))
-    # txtf.close()
 
     """
     calculate power
