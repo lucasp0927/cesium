@@ -25,7 +25,7 @@ class Expolist(object):
         return result
 
     def __sub__(self,expolist):
-        expolist2 = expolist*-1
+        expolist2 = expolist*(-1.0)
         result =  Expolist(self.terms+expolist2.terms)
         result.simplify()
         return result
@@ -80,12 +80,8 @@ class Expolist(object):
             return self.terms[0].mag
         
 if __name__ == '__main__':
-    matrix = [Expolist() for i in range(2)]
-    print Expolist([Expo(1,0)])
-    matrix[0] = matrix[0]+Expolist([Expo(1,0)])
-    print matrix
-    a1 = Expolist([Expo(1,0)])
-    a2 = Expolist()
+    a1 = Expolist([Expo(1.0+1.0j,0),Expo(1.0+0.0j,120)])
+    print a1    
+    a1.RWA()
     print a1
-    print a2
-    print a1*a2
+

@@ -4,7 +4,7 @@ class Expo(object):
     mag*Exp(i freq t)
     """
     
-    def __init__(self,mag=0,freq=0):
+    def __init__(self,mag=0.0,freq=0.0):
         """
         """
         self.mag,self.freq = mag,freq

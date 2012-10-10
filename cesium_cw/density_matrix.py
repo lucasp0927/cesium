@@ -26,8 +26,8 @@ class System:
         else:
             terms = []
             for k in range(len(self.e_amp)):
-                for l in range(2):
-                    mag = (-1*self.dipole[k][i][j]*self.e_amp[k][0]/2.0)/HBAR()
+                for l in range(2): # plus and minus frequency
+                    mag = (-1*self.dipole[k][i][j]*self.e_amp[k][0]/2.0)/HBAR() # /2.0 because to freuqency
                     freq = (-1)**l*self.nu[k]
                     terms.append(Expo(mag,freq))#*(1.0/HBAR()))
             return Expolist(terms)
@@ -56,9 +56,8 @@ class System:
         """
         Are levels in the same group?
         """
-        for g in self.level_group:
-            if (i in g) and (j in g):
-                return True
+        if self.group_number(i) == self.group_number(j):
+            return True
         else:
             return False
 
@@ -216,19 +215,29 @@ class System:
     def sweep_save_file(self,filename,points):
         print "save file"
         f=open(filename,'w')# w option will overwrite file if file exist            
+        f_all=open(filename+"_all",'w')# w option will overwrite file if file exist            
         tmp_str = "#average power: %fw/m^2\n" %(self.power)
+        tmp_str_all = "#average power: %fw/m^2\n" %(self.power)
         f.write(tmp_str)
         for i in range(points):
-            tmp_str = '%.10f '%(self.result[i][0]/(2.0*np.pi)) # convert to hz
+            tmp_str = '%.13f '%(self.result[i][0]/(2.0*np.pi)) # convert to hz
+            tmp_str_all = '%.13f '%(self.result[i][0]/(2.0*np.pi)) # convert to hz
             if self.d1 == 1:
-                tmp_str += '%.10f %.10f %.10f' %(np.sum(self.result[i][1:17]),np.sum(self.result[i][17:26]),np.sum(self.result[i][26:33]))
+                tmp_str += '%.13f %.13f %.13f' %(np.sum(self.result[i][1:17]),np.sum(self.result[i][17:26]),np.sum(self.result[i][26:33]))
+                for j in range(1,33):
+                    tmp_str_all += '%.13f ' %(self.result[i][j])
             elif self.d1 == 2:
-                tmp_str += '%.10f %.10f %.10f' %(np.sum(self.result[i][1:33]),np.sum(self.result[i][33:42]),np.sum(self.result[i][42:49]))                
+                tmp_str += '%.13f %.13f %.13f' %(np.sum(self.result[i][1:33]),np.sum(self.result[i][33:42]),np.sum(self.result[i][42:49]))                
+                for j in range(1,49):
+                    tmp_str_all += '%.13f ' %(self.result[i][j])
             # for j in range(self.n):
             #     tmp_str += ' %.10f'%self.result[i][j+1]
             tmp_str += '\n'
+            tmp_str_all += '\n'
             f.write(tmp_str)
+            f_all.write(tmp_str_all)
         f.close()
+        f_all.close()
         
     def von_neumann(self,system):
         for i in range(self.n):
@@ -298,7 +307,7 @@ class System:
         self.decoherence_matrix = parameter['decoherence_matrix']
         self.d1 = parameter['d1']
         self.power = parameter['power']
-        self.N = self.n**2 #number of independent density matrix variable
+        self.N = self.n**2 #number of independent density matrix variable, include real imag
         self.result = []
         print '  initializing system matrix...'        
         self.system = [[Expolist() for i in xrange(self.N)] for j in xrange(self.N)]
